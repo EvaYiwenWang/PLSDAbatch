@@ -41,4 +41,4 @@ VignetteBuilder: knitr
 RdMacros: Rdpack
 RoxygenNote: 7.2.3
 Encoding: UTF-8
-BugReports: https://github.com/EvaYiwenWang/PLSDAbatch-for-Bioconductor/issues/
+BugReports: https://github.com/EvaYiwenWang/PLSDAbatch/issues/

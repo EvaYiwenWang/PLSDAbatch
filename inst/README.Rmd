@@ -25,9 +25,9 @@ opts_chunk$set(
 )
 ```
 
-`r badge_last_commit("EvaYiwenWang/PLSDAbatch-for-Bioconductor", branch='master')`
+`r badge_last_commit("EvaYiwenWang/PLSDAbatch", branch='master')`
 `r badge_license("GPL-3")`
-`r badge_code_size("EvaYiwenWang/PLSDAbatch-for-Bioconductor")`
+`r badge_code_size("EvaYiwenWang/PLSDAbatch")`
 `r badge_repostatus("Active")`
 
 # PLSDAbatch 
@@ -69,7 +69,7 @@ BiocManager::install('PLSDAbatch')
 Install the GitHub version with:
 
 ```{r}
-BiocManager::install("EvaYiwenWang/PLSDAbatch-for-Bioconductor") 
+BiocManager::install("EvaYiwenWang/PLSDAbatch") 
 ```
 
 ## Functions review
@@ -91,7 +91,7 @@ browseVignettes("PLSDAbatch")
 
 ## Bugs reports/Feature requests
 
-[Open a new issue](https://github.com/EvaYiwenWang/PLSDAbatch-for-Bioconductor/issues).
+[Open a new issue](https://github.com/EvaYiwenWang/PLSDAbatch/issues).
 
 ## Reference
 

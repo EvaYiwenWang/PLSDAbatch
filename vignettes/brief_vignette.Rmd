@@ -35,7 +35,7 @@ knitr::opts_chunk$set(dpi = 300, echo = TRUE, warning = FALSE, message = FALSE,
 
 Apart from the main method, the R package also includes two variants called 1/ *weighted PLSDA-batch* for unbalanced batch x treatment designs that are commonly encountered in studies with small sample size, and 2/ *sparse PLSDA-batch* for selection of discriminative variables to avoid overfitting in classification problems. These two variants have widened the scope of applicability of PLSDA-batch to different data settings [@wang2020multivariate]. 
 
-This vignette only includes the necessary pre-processing steps (pre-filtering and transformation) for microbiome data and the usage of PLSDA-batch series methods. See "[Batch Effects Management in Case Studies](https://evayiwenwang.github.io/PLSDAbatch/articles/case_studies.html)" for the complete process including data pre-processing, batch effect detection and visualisation, choices of methods to account for or correct for batch effects, assessment of batch effect removal and variable selection after batch effect correction.
+This vignette only includes the necessary pre-processing steps (pre-filtering and transformation) for microbiome data and the usage of PLSDA-batch series methods. See "[Batch Effects Management in Case Studies](https://evayiwenwang.github.io/PLSDAbatch_workflow/articles/case_studies.html)" for the complete batch effect management process including data pre-processing, batch effect detection and visualisation, choices of methods to account for or correct for batch effects, assessment of batch effect removal and variable selection after batch effect correction.
 
 ```{r, include = FALSE}
 colorize <- function(x, color){
@@ -70,16 +70,13 @@ First, we load the packages necessary for analysis, and check the version of eac
 
 ```{r}
 # Bioconductor
-bioc.pkgs <- c('mixOmics', 'Biobase')
-# GitHub
-github.pkg <- 'PLSDAbatch' 
-# devtools::install_github("https://github.com/EvaYiwenWang/PLSDAbatch")
+bioc.pkgs <- c('mixOmics', 'Biobase', 'PLSDAbatch')
 
 # load packages 
-sapply(c(bioc.pkgs, github.pkg), require, character.only = TRUE)
+sapply(bioc.pkgs, require, character.only = TRUE)
 
 # print package versions
-sapply(c(bioc.pkgs, github.pkg), package.version)
+sapply(bioc.pkgs, package.version)
 ```
 
 # Table of contents
