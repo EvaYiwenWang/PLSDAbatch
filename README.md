@@ -61,6 +61,8 @@ BiocManager::install("EvaYiwenWang/PLSDAbatch")
 ## Functions review
 
 ``` r
+library(PLSDAbatch)
+
 ## names
 ls('package:PLSDAbatch')
 
@@ -83,7 +85,10 @@ browseVignettes("PLSDAbatch")
 Wang, Y., & Lê Cao, K. A. (2023). PLSDA-batch: a multivariate framework
 to correct for batch effects in microbiome data. Briefings in
 Bioinformatics, 24(2), bbac622.
-<https://academic.oup.com/bib/article/24/2/bbac622/6991121>.
+
+<https://academic.oup.com/bib/article/24/2/bbac622/6991121> (The
+mentioned simulations and analyses in the paper are separately stored
+[here](https://evayiwenwang.github.io/PLSDAbatch_workflow/).)
 
 ## What’s New
 
