@@ -1,0 +1,22 @@
+---
+description: |
+  "This is a child document for README.Rmd to isolate What's New updates (last section of README)"
+  "see README.Rmd's last chunk."
+  "No need to knit this. Knitting README will automatically include this."
+---
+
+```{r setup-news, include=FALSE}
+library(knitr)
+opts_chunk$set( echo = TRUE, eval = FALSE, warning = FALSE, message = FALSE)
+```
+
+
+```{r, echo=FALSE, eval=FALSE, message='hide', fig.asp=1, out.width="50%"}
+## template chunk - don't change/delete
+```
+
+## What's New
+
+#### April 2023
+
+* submitted to Bioconductor.

@@ -1,0 +1,14 @@
+citHeader("To cite PLSDAbatch in publications, please use:")
+
+citEntry(entry = "article",
+  author = "Wang Y and Le Cao K-A",
+  title = "PLSDA-batch: a multivariate framework to correct for batch effects in microbiome data",
+journal="Briefings in Bioinformatics",
+  volume="24",
+  number="2",
+  pages="bbac622",
+  year="2023",
+  publisher="Oxford University Press",
+  url = "https://academic.oup.com/bib/article/24/2/bbac622/6991121",
+  textVersion = "Wang, Y., and Le Cao, K. A. (2023). PLSDA-batch: a multivariate framework to correct for batch effects in microbiome data. Briefings in Bioinformatics, 24(2), bbac622."
+)
