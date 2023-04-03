@@ -1,8 +1,6 @@
 
 <!-- PLEASE DO NOT EDIT ./README.md BY HAND, EDIT ./inst/README.Rmd AND RENDER TO CREATE ./README.md -->
 
-[![R build
-status](https://github.com/EvaYiwenWang/PLSDAbatch-for-Bioconductor/workflows/R-CMD-check/badge.svg)](https://github.com/EvaYiwenWang/PLSDAbatch-for-Bioconductor/actions)
 [![](https://img.shields.io/github/last-commit/EvaYiwenWang/PLSDAbatch-for-Bioconductor.svg)](https://github.com/EvaYiwenWang/PLSDAbatch-for-Bioconductor/commits/master)
 [![License:
 GPL-3](https://img.shields.io/badge/license-GPL--3-blue.svg)](https://cran.r-project.org/web/licenses/GPL-3)

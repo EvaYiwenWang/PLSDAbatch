@@ -25,7 +25,6 @@ opts_chunk$set(
 )
 ```
 
-`r badge_github_actions("EvaYiwenWang/PLSDAbatch-for-Bioconductor")`
 `r badge_last_commit("EvaYiwenWang/PLSDAbatch-for-Bioconductor", branch='master')`
 `r badge_license("GPL-3")`
 `r badge_code_size("EvaYiwenWang/PLSDAbatch-for-Bioconductor")`
