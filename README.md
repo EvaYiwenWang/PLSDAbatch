@@ -76,7 +76,7 @@ lsf.str('package:PLSDAbatch')
 browseVignettes("PLSDAbatch")
 ```
 
-## Bugs reports/Feature requests
+## Bug reports/Feature requests
 
 [Open a new issue](https://github.com/EvaYiwenWang/PLSDAbatch/issues).
 
