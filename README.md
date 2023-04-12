@@ -55,10 +55,14 @@ BiocManager::install('PLSDAbatch')
 Install the GitHub version with:
 
 ``` r
+# without vignette
 BiocManager::install("EvaYiwenWang/PLSDAbatch") 
+
+# with vignette
+devtools::install_github("https://github.com/EvaYiwenWang/PLSDAbatch", build_vignettes = T)
 ```
 
-## Functions review
+## Functions preview
 
 ``` r
 library(PLSDAbatch)
