@@ -2,8 +2,8 @@
 title: 'PLSDA-batch Vignette'
 author: 
 - name: 'Yiwen (Eva) Wang'
-    affiliation: 'Agricultural Genomics Institute at Shenzhen, Chinese Academy of Agricultural Sciences, Shenzhen, China'
-    email: 'wangyiwen@caas.cn'
+  affiliation: 'Agricultural Genomics Institute at Shenzhen, Chinese Academy of Agricultural Sciences, Shenzhen, China'
+  email: 'wangyiwen@caas.cn'
 date: '`r format(Sys.time(), "%d %B, %Y")`'
 package: PLSDAbatch
 
@@ -23,7 +23,7 @@ link-citations: true
 
 ---
 ```{r setup, include = FALSE}
-knitr::opts_chunk$set(dpi = 300, echo = TRUE, warning = FALSE, message = FALSE, 
+knitr::opts_chunk$set(dpi = 50, echo = TRUE, warning = FALSE, message = FALSE, 
                     eval = TRUE, fig.show = TRUE, fig.width = 6, 
                     fig.height = 4, fig.align ='center', 
                     out.width = '60%', cache = FALSE)
@@ -168,11 +168,11 @@ box_plot(df = ad.OTU_batch, title = paste(ad.OTU.name, '(AD data)'),
         x.angle = 30)
 ```
 
-```{r ADdensityBefore, out.width = '80%', fig.align = 'center', fig.cap = 'Density plots of sample values in "OTU28" before batch effect correction in the AD data.'}
+```{r ADdensityBefore, out.width = '80%', fig.align = 'center', fig.cap = 'Density plots of sample values in "OTU28" before batch effect correction in the AD data.', eval = FALSE}
 density_plot(df = ad.OTU_batch, title = paste(ad.OTU.name, '(AD data)'))
 ```
 
-The boxplot and density plot indicated a strong date batch effect because of the differences between "14/04/2016", "21/09/2017" and the other dates in the "OTU28".
+The boxplot and density plot (not shown) indicated a strong date batch effect because of the differences between "14/04/2016", "21/09/2017" and the other dates in the "OTU28".
 
 We also apply a linear regression model to the "OTU28" using `linear_regres()` from `r colorize("PLSDAbatch", "orange")` with batch and treatment effects as covariates. We set "14/04/2016" and "21/09/2017" as the reference batch respectively with `relevel()` from `r colorize("stats", "orange")`.
 
@@ -203,7 +203,7 @@ From the results of linear regression, we observed P < 0.001 for the regression 
 We produce a heatmap using `r colorize("pheatmap", "orange")` package. The data first need to be scaled on both OTUs and samples.
 
 
-```{r ADheatmap, out.width = '90%', fig.align = 'center', fig.cap = 'Hierarchical clustering for samples in the AD data.'}
+```{r ADheatmap, out.width = '90%', fig.align = 'center', fig.cap = 'Hierarchical clustering for samples in the AD data.', eval = FALSE}
 # scale the clr data on both OTUs and samples
 ad.clr.s <- scale(ad.clr, center = TRUE, scale = TRUE)
 ad.clr.ss <- scale(t(ad.clr.s), center = TRUE, scale = TRUE)
@@ -229,7 +229,7 @@ pheatmap(ad.clr.ss,
 
 ```
 
-In the heatmap, samples in the `r colorize("AD data", "blue")` from batch dated "14/04/2016" were clustered and distinct from other samples, indicating a batch effect.
+In the heatmap (not shown), samples in the `r colorize("AD data", "blue")` from batch dated "14/04/2016" were clustered and distinct from other samples, indicating a batch effect.
 
 
 ## pRDA
