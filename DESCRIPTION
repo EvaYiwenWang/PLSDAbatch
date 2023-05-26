@@ -19,14 +19,15 @@ Imports:
     lmerTest,
     performance,
     grid,
-    stats
+    stats,
+    pheatmap,
+    vegan,
+    Biobase,
+    BiocStyle
 Suggests: 
-    BiocStyle,
     knitr,
     rmarkdown,
-    vegan,
     testthat,
-    Biobase,
     badger
 biocViews:
     StatisticalMethod,
