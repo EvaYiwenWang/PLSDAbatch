@@ -115,6 +115,7 @@ ad_splsda_batch <- PLSDA_batch(X, Y.trt, Y.bat, ncomp.trt = 1,
 }
 \references{
 \insertRef{wang2020managing}{PLSDAbatch}
+
 \insertRef{wang2020multivariate}{PLSDAbatch}
 }
 \seealso{

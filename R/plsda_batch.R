@@ -77,6 +77,7 @@
 #'
 #' @references
 #' \insertRef{wang2020managing}{PLSDAbatch}
+#'
 #' \insertRef{wang2020multivariate}{PLSDAbatch}
 #'
 #' @examples
