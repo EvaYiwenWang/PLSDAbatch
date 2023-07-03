@@ -1,8 +1,12 @@
 ############################################################################
 #' Partial Least Squares Discriminant Analysis for Batch Effect Correction
 #'
-#' This function removes batch variation from the input data given batch
-#' grouping information and the number of associated components.
+#' This function removes batch variation from the input data given the batch
+#' grouping information and the number of associated components with
+#' PLSDA-batch. For sparse PLSDA-batch, the number of variables to keep for each
+#' treatment related component is needed (\code{keepX.trt}). For weighted
+#' PLSDA-batch, the \code{balance} should be set to \code{FALSE}, and it cannot
+#' deal with the nested \code{batch x treatment design}.
 #'
 #' @importFrom mixOmics unmap nearZeroVar
 #' @importFrom Rdpack reprompt
@@ -25,7 +29,7 @@
 #' to a sparse version.
 #' @param keepX.bat A numeric vector of length \code{ncomp.bat}, the number
 #' of variables to keep in \eqn{X}-loadings. By default all variables are kept
-#' in the model. We usually use default setting.
+#' in the model. We usually use the default setting.
 #' @param max.iter Integer, the maximum number of iterations.
 #' @param tol Numeric, convergence stopping value.
 #' @param near.zero.var Logical, should be set to \code{TRUE} in particular for
@@ -34,8 +38,9 @@
 #' Default value is \code{TRUE}.
 #' @param balance Logical, should be set to \code{TRUE}, if the
 #' \code{batch x treatment design} is balanced (or complete). Setting this
-#' argument to \code{FALSE} extends \code{PLSDA_batch} to
-#' \code{weighted PLSDA_batch}. Default value is \code{TRUE}.
+#' argument to \code{FALSE} extends \code{PLSDA-batch} to
+#' \code{weighted PLSDA-batch}. \code{wPLSDA-batch} can deal with highly
+#' unbalanced designs but not the nested design. Default value is \code{TRUE}.
 #'
 #' @return \code{PLSDA_batch} returns a list that contains
 #' the following components:
@@ -71,6 +76,7 @@
 #' the other methods for batch effect management.
 #'
 #' @references
+#' \insertRef{wang2020managing}{PLSDAbatch}
 #' \insertRef{wang2020multivariate}{PLSDAbatch}
 #'
 #' @examples

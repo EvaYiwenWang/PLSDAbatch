@@ -43,7 +43,7 @@ to a sparse version.}
 
 \item{keepX.bat}{A numeric vector of length \code{ncomp.bat}, the number
 of variables to keep in \eqn{X}-loadings. By default all variables are kept
-in the model. We usually use default setting.}
+in the model. We usually use the default setting.}
 
 \item{max.iter}{Integer, the maximum number of iterations.}
 
@@ -57,7 +57,8 @@ Default value is \code{TRUE}.}
 \item{balance}{Logical, should be set to \code{TRUE}, if the
 \code{batch x treatment design} is balanced (or complete). Setting this
 argument to \code{FALSE} extends \code{PLSDA_batch} to
-\code{weighted PLSDA_batch}. Default value is \code{TRUE}.}
+\code{weighted PLSDA_batch}. \code{wPLSDA-batch} can deal with highly
+unbalanced designs but not the nested design. Default value is \code{TRUE}.}
 }
 \value{
 \code{PLSDA_batch} returns a list that contains
@@ -89,8 +90,12 @@ batch associated component.}
 \code{batch x treatment design}.}
 }
 \description{
-This function removes batch variation from the input data given batch
-grouping information and the number of associated components.
+This function removes batch variation from the input data given the batch
+grouping information and the number of associated components with
+PLSDA-batch. For sparse PLSDA-batch, the number of variables to keep for each
+treatment related component is needed (\code{keepX.trt}). For weighted
+PLSDA-batch, the \code{balance} should be set to \code{FALSE}, and it cannot
+deal with the nested \code{batch x treatment design}.
 }
 \examples{
 ## First example
@@ -109,6 +114,7 @@ ad_splsda_batch <- PLSDA_batch(X, Y.trt, Y.bat, ncomp.trt = 1,
 
 }
 \references{
+\insertRef{wang2020managing}{PLSDAbatch}
 \insertRef{wang2020multivariate}{PLSDAbatch}
 }
 \seealso{
