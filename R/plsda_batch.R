@@ -25,7 +25,7 @@
 #' include in the model.
 #' @param keepX.trt A numeric vector of length \code{ncomp.trt}, the number
 #' of variables to keep in \eqn{X}-loadings. By default all variables are kept
-#' in the model. A valid input of \code{keepX.trt} extends \code{PLSDA_batch}
+#' in the model. A valid input of \code{keepX.trt} extends \code{PLSDA-batch}
 #' to a sparse version.
 #' @param keepX.bat A numeric vector of length \code{ncomp.bat}, the number
 #' of variables to keep in \eqn{X}-loadings. By default all variables are kept
