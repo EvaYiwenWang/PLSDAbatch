@@ -36,9 +36,11 @@
 #' \insertRef{butler2018integrating}{PLSDAbatch}
 #'
 #' @examples
+#' library(TreeSummarizedExperiment) # for functions assays(),rowData()
 #' data('sponge_data')
-#' X <- sponge_data$X.clr # centered log ratio transformed data
-#' batch <- sponge_data$Y.bat # batch information
+#' X <- assays(sponge_data)$Clr_value # centered log ratio transformed data
+#' batch <- rowData(sponge_data)$Y.bat # batch information
+#' names(batch) <- rownames(sponge_data)
 #'
 #' alignment_score(data = X, batch = batch, var = 0.95, k = 3, ncomp = 20)
 #'
@@ -48,19 +50,19 @@ alignment_score <- function(data,
                             var = 0.95,
                             k = round(0.1*nrow(data)),
                             ncomp = 20){
-    
-    x <- c()
+
     pca.res <- pca(X = data, ncomp = ncomp, scale = TRUE)
     ncomp.use <- sum(cumsum(pca.res$prop_expl_var$X) < var)
     dist.mat <- as.matrix(dist(pca.res$variates$X[,seq_len(ncomp.use)],
-    upper = TRUE, diag = TRUE))
-    
+                                upper = TRUE, diag = TRUE))
     diag(dist.mat) <- NA
+
+    x <- c()
     for(i in seq_len(ncol(dist.mat))){
         x[i] <- sum(batch[names(sort(dist.mat[,i])[seq_len(k)])] ==
         batch[rownames(dist.mat)[i]])
     }
-    
-    1 - (mean(x) - k/ncol(dist.mat)) /(k - k/ncol(dist.mat))
-    
+
+    result <- 1 - (mean(x) - k/ncol(dist.mat)) /(k - k/ncol(dist.mat))
+    return(result)
 }

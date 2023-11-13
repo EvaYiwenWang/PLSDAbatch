@@ -1,4 +1,3 @@
-######################################
 #' Partitioned Variance Plot
 #'
 #' This function draws a partitioned variance plot explained
@@ -30,10 +29,13 @@
 #' @examples
 #' ## First example
 #' library(vegan) # for function varpart()
+#' library(TreeSummarizedExperiment) # for functions assays(),rowData()
 #' data('AD_data')
-#' ad.clr <- AD_data$EgData$X.clr # centered log ratio transformed data
-#' ad.batch <- AD_data$EgData$Y.bat # batch information
-#' ad.trt <- AD_data$EgData$Y.trt # treatment information
+#' # centered log ratio transformed data
+#' ad.clr <- assays(AD_data$EgData)$Clr_value
+#' ad.batch <- rowData(AD_data$EgData)$Y.bat # batch information
+#' ad.trt <- rowData(AD_data$EgData)$Y.trt # treatment information
+#' names(ad.batch) <- names(ad.trt) <- rownames(AD_data$EgData)
 #'
 #' ad.factors.df <- data.frame(trt = ad.trt, batch = ad.batch)
 #' rda.res <- varpart(ad.clr, ~ trt, ~ batch,
@@ -53,7 +55,7 @@
 #'
 #' ## Second example
 #' # a list of data corrected from different methods
-#' ad.corrected.list <- AD_data$CorrectData
+#' ad.corrected.list <- assays(AD_data$CorrectData)
 #' ad.prop.df <- data.frame(Treatment = NA, Batch = NA,
 #'                          Intersection = NA,
 #'                          Residuals = NA)

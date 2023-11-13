@@ -1,9 +1,12 @@
 test_that("checking partVar_plot", {
   library(vegan)
+  library(TreeSummarizedExperiment)
+
   data('AD_data')
-  ad.clr <- AD_data$EgData$X.clr
-  ad.batch <- AD_data$EgData$Y.bat
-  ad.trt <- AD_data$EgData$Y.trt
+  ad.clr <- assays(AD_data$EgData)$Clr_value
+  ad.batch <- rowData(AD_data$EgData)$Y.bat
+  ad.trt <- rowData(AD_data$EgData)$Y.trt
+  names(ad.batch) <- names(ad.trt) <- rownames(AD_data$EgData)
 
   ad.factors.df <- data.frame(trt = ad.trt, batch = ad.batch)
   rda.res <- varpart(ad.clr, ~ trt, ~ batch,

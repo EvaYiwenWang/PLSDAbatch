@@ -81,10 +81,14 @@ batch effects. It can help to decide whether it is better to include
 batch effects.
 }
 \examples{
+library(TreeSummarizedExperiment) # for functions assays(),rowData()
 data('AD_data')
-ad.clr <- AD_data$EgData$X.clr # centered log ratio transformed data
-ad.batch <- AD_data$EgData$Y.bat # batch information
-ad.trt <- AD_data$EgData$Y.trt # treatment information
+
+# centered log ratio transformed data
+ad.clr <- assays(AD_data$EgData)$Clr_value
+ad.batch <- rowData(AD_data$EgData)$Y.bat # batch information
+ad.trt <- rowData(AD_data$EgData)$Y.trt # treatment information
+names(ad.batch) <- names(ad.trt) <- rownames(AD_data$EgData)
 ad.lm <- linear_regres(data = ad.clr, trt = ad.trt,
                         batch.fix = ad.batch,
                         type = 'linear model')

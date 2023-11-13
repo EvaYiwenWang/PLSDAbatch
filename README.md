@@ -99,3 +99,7 @@ mentioned simulations and analyses in the paper are separately stored
 #### April 2023
 
 - submitted to Bioconductor.
+
+#### November 2023
+
+- re-submitted to Bioconductor.

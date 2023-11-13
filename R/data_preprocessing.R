@@ -1,4 +1,3 @@
-####################################################
 #' Prefiltering for Microbiome Data
 #'
 #' This function prefilters the data to remove samples or microbial variables
@@ -24,8 +23,10 @@
 #' @export
 #'
 #' @examples
+#' library(TreeSummarizedExperiment) # for functions assays()
 #' data('AD_data')
-#' ad.count <- AD_data$FullData$X.count # microbial count data
+#'
+#' ad.count <- assays(AD_data$FullData)$Count # microbial count data
 #' ad.filter.res <- PreFL(data = ad.count)
 #'
 #' # The proportion of zeroes of the AD count data
@@ -51,9 +52,9 @@ PreFL <- function(data,
     data.out <- as.matrix(data[, keep.var])
 
     result <- list(data.filter = data.out,
-    sample.idx = keep.sample,
-    var.idx = keep.var,
-    zero.prob = zero.prob)
+                    sample.idx = keep.sample,
+                    var.idx = keep.var,
+                    zero.prob = zero.prob)
 
     return(invisible(result))
 }

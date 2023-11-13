@@ -56,8 +56,8 @@ Default value is \code{TRUE}.}
 
 \item{balance}{Logical, should be set to \code{TRUE}, if the
 \code{batch x treatment design} is balanced (or complete). Setting this
-argument to \code{FALSE} extends \code{PLSDA_batch} to
-\code{weighted PLSDA_batch}. \code{wPLSDA-batch} can deal with highly
+argument to \code{FALSE} extends \code{PLSDA-batch} to
+\code{weighted PLSDA-batch}. \code{wPLSDA-batch} can deal with highly
 unbalanced designs but not the nested design. Default value is \code{TRUE}.}
 }
 \value{
@@ -100,10 +100,12 @@ deal with the nested \code{batch x treatment design}.
 \examples{
 ## First example
 ## PLSDA-batch
+library(TreeSummarizedExperiment) # for functions assays(),rowData()
 data('AD_data')
-X <- AD_data$EgData$X.clr # centered log ratio transformed data
-Y.trt <- AD_data$EgData$Y.trt # treatment information
-Y.bat <- AD_data$EgData$Y.bat # batch information
+X <- assays(AD_data$EgData)$Clr_value # centered log ratio transformed data
+Y.trt <- rowData(AD_data$EgData)$Y.trt # treatment information
+Y.bat <- rowData(AD_data$EgData)$Y.bat # batch information
+names(Y.bat) <- names(Y.trt) <- rownames(AD_data$EgData)
 ad_plsda_batch <- PLSDA_batch(X, Y.trt, Y.bat, ncomp.trt = 1, ncomp.bat = 5)
 ad_X.corrected <- ad_plsda_batch$X.nobatch # batch corrected data
 

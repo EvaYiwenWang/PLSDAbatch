@@ -42,9 +42,11 @@ in the batch corrected data. It is based on the dissimilarity matrix from
 Principal Component Analysis.
 }
 \examples{
+library(TreeSummarizedExperiment) # for functions assays(),rowData()
 data('sponge_data')
-X <- sponge_data$X.clr # centered log ratio transformed data
-batch <- sponge_data$Y.bat # batch information
+X <- assays(sponge_data)$Clr_value # centered log ratio transformed data
+batch <- rowData(sponge_data)$Y.bat # batch information
+names(batch) <- rownames(sponge_data)
 
 alignment_score(data = X, batch = batch, var = 0.95, k = 3, ncomp = 20)
 

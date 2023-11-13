@@ -26,8 +26,10 @@ This function prefilters the data to remove samples or microbial variables
 with excess zeroes.
 }
 \examples{
+library(TreeSummarizedExperiment) # for functions assays()
 data('AD_data')
-ad.count <- AD_data$FullData$X.count # microbial count data
+
+ad.count <- assays(AD_data$FullData)$Count # microbial count data
 ad.filter.res <- PreFL(data = ad.count)
 
 # The proportion of zeroes of the AD count data

@@ -1,8 +1,11 @@
 test_that("checking linear_regres", {
+  library(TreeSummarizedExperiment)
   data('AD_data')
-  ad.clr <- AD_data$EgData$X.clr
-  ad.batch <- AD_data$EgData$Y.bat
-  ad.trt <- AD_data$EgData$Y.trt
+
+  ad.clr <- assays(AD_data$EgData)$Clr_value
+  ad.batch <- rowData(AD_data$EgData)$Y.bat
+  ad.trt <- rowData(AD_data$EgData)$Y.trt
+  names(ad.batch) <- names(ad.trt) <- rownames(AD_data$EgData)
   ad.lm <- linear_regres(data = ad.clr, trt = ad.trt,
                          batch.fix = ad.batch,
                          type = 'linear model')
@@ -21,12 +24,31 @@ test_that("checking linear_regres", {
 
 })
 
+test_that("checking percentileofscore", {
+  library(TreeSummarizedExperiment)
+  data('AD_data')
+
+  ad.clr <- assays(AD_data$EgData)$Clr_value
+  ad.batch <- rowData(AD_data$EgData)$Y.bat
+  ad.trt <- rowData(AD_data$EgData)$Y.trt
+  names(ad.batch) <- names(ad.trt) <- rownames(AD_data$EgData)
+  trt.first.b <- ad.trt[ad.batch == '09/04/2015']
+  ad.first.b.pn <- percentileofscore(ad.clr[ad.batch == '09/04/2015', ],
+                                      which(trt.first.b == '0-0.5'))
+
+  expect_is(ad.first.b.pn, 'data.frame')
+  expect_equal(dim(ad.first.b.pn), c(9, 231))
+})
+
 
 test_that("checking percentile_norm", {
+  library(TreeSummarizedExperiment)
   data('AD_data')
-  ad.clr <- AD_data$EgData$X.clr
-  ad.batch <- AD_data$EgData$Y.bat
-  ad.trt <- AD_data$EgData$Y.trt
+
+  ad.clr <- assays(AD_data$EgData)$Clr_value
+  ad.batch <- rowData(AD_data$EgData)$Y.bat
+  ad.trt <- rowData(AD_data$EgData)$Y.trt
+  names(ad.batch) <- names(ad.trt) <- rownames(AD_data$EgData)
   ad.PN <- percentile_norm(data = ad.clr, batch = ad.batch,
                           trt = ad.trt, ctrl.grp = '0-0.5')
 

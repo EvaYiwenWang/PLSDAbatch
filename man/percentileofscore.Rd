@@ -26,7 +26,17 @@ It is a built-in function of \code{percentile_norm}.
 }
 \examples{
 # A built-in function of percentile_norm, not separately used.
+# Not run
+library(TreeSummarizedExperiment)
+data('AD_data')
 
+ad.clr <- assays(AD_data$EgData)$Clr_value
+ad.batch <- rowData(AD_data$EgData)$Y.bat
+ad.trt <- rowData(AD_data$EgData)$Y.trt
+names(ad.batch) <- names(ad.trt) <- rownames(AD_data$EgData)
+trt.first.b <- ad.trt[ad.batch == '09/04/2015']
+ad.first.b.pn <- percentileofscore(ad.clr[ad.batch == '09/04/2015', ],
+                                    which(trt.first.b == '0-0.5'))
 
 
 }

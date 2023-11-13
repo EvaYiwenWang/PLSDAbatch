@@ -60,11 +60,14 @@ principal component.
 \examples{
 # The first example
 library(mixOmics) # for function pca()
+library(TreeSummarizedExperiment) # for functions assays(),rowData()
 data('AD_data')
-ad.clr <- AD_data$EgData$X.clr # centered log ratio transformed data
+# centered log ratio transformed data
+ad.clr <- assays(AD_data$EgData)$Clr_value
 ad.pca.before <- pca(ad.clr, ncomp = 3, scale = TRUE)
-ad.batch <- AD_data$EgData$Y.bat # batch information
-ad.trt <- AD_data$EgData$Y.trt # treatment information
+ad.batch <- rowData(AD_data$EgData)$Y.bat # batch information
+ad.trt <- rowData(AD_data$EgData)$Y.trt # treatment information
+names(ad.batch) <- names(ad.trt) <- rownames(AD_data$EgData)
 Scatter_Density(object = ad.pca.before, batch = ad.batch, trt = ad.trt)
 
 # The second example

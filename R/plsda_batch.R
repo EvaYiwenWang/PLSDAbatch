@@ -1,4 +1,3 @@
-############################################################################
 #' Partial Least Squares Discriminant Analysis for Batch Effect Correction
 #'
 #' This function removes batch variation from the input data given the batch
@@ -83,10 +82,12 @@
 #' @examples
 #' ## First example
 #' ## PLSDA-batch
+#' library(TreeSummarizedExperiment) # for functions assays(),rowData()
 #' data('AD_data')
-#' X <- AD_data$EgData$X.clr # centered log ratio transformed data
-#' Y.trt <- AD_data$EgData$Y.trt # treatment information
-#' Y.bat <- AD_data$EgData$Y.bat # batch information
+#' X <- assays(AD_data$EgData)$Clr_value # centered log ratio transformed data
+#' Y.trt <- rowData(AD_data$EgData)$Y.trt # treatment information
+#' Y.bat <- rowData(AD_data$EgData)$Y.bat # batch information
+#' names(Y.bat) <- names(Y.trt) <- rownames(AD_data$EgData)
 #' ad_plsda_batch <- PLSDA_batch(X, Y.trt, Y.bat, ncomp.trt = 1, ncomp.bat = 5)
 #' ad_X.corrected <- ad_plsda_batch$X.nobatch # batch corrected data
 #'
@@ -142,7 +143,7 @@ PLSDA_batch <- function(X,
 
     ncomp.bat <- round(ncomp.bat)
 
-    ###################
+
     if(near.zero.var == TRUE){
         nzv <- nearZeroVar(X)
 
@@ -160,7 +161,6 @@ PLSDA_batch <- function(X,
 
     p <- ncol(X)
 
-    ##################
 
     if(ncomp.bat > p){
         warning("Reset maximum number of variates 'ncomp.bat' to ncol(X) = ",
@@ -178,7 +178,6 @@ PLSDA_batch <- function(X,
             p, ".")
     }
 
-    #########
     #-- initialisation of matrices --#
     if(is.null(rownames(X))){
         if(is.null(names(Y.bat))){
@@ -196,7 +195,7 @@ PLSDA_batch <- function(X,
     colnames(Y.bat.mat) <- levels(Y.bat)
 
     weight <- rep(1,nrow(X))
-    ##########################
+
     if(!is.null(Y.trt)){
         # Testing the input Y
         if(!is.null(dim(Y.trt))){
@@ -218,11 +217,11 @@ PLSDA_batch <- function(X,
 
         ncomp.trt <- round(ncomp.trt)
 
-        ###########
+
         if(ncomp.trt > p){
-            warning("Reset maximum number of variates 'ncomp.trt' to ncol(X) = ",
-                p, ".")
-            ncomp.trt <- p
+        warning("Reset maximum number of variates 'ncomp.trt' to ncol(X) = ",
+            p, ".")
+        ncomp.trt <- p
         }
 
         if(length(keepX.trt) != ncomp.trt){
@@ -237,9 +236,9 @@ PLSDA_batch <- function(X,
         colnames(Y.trt.mat) <- levels(Y.trt)
         rownames(Y.trt.mat) <- names(Y.trt) <- rownames(X)
 
-        ######################
+
         if(balance == FALSE){
-            #-- weight --#
+            # weight
             group <- data.frame(trt = Y.trt, bat = Y.bat)
             weight.num <- table(Y.trt, Y.bat)
 
@@ -273,8 +272,8 @@ PLSDA_batch <- function(X,
             Y.trt.scale <- scale(Y.trt.mat, center = TRUE, scale = TRUE)
         }
 
-        ##########
-        # stage 1: fit the treatment effect first --#
+
+        #-- stage 1: fit the treatment effect first --#
         plsda_trt <- PLSDA(X = X.scale, Y = Y.trt.scale, ncomp = ncomp.trt,
         keepX = keepX.trt, tol = tol, max.iter = max.iter)
         X.notrt <- plsda_trt$defl_data$X
@@ -290,15 +289,13 @@ PLSDA_batch <- function(X,
         X.notrt <- X.scale
     }
 
-    ##########
-    # stage 2: fit the batch effect then --#
+    #-- stage 2: fit the batch effect then --#
     plsda_bat <- PLSDA(X = X.notrt, Y = Y.bat.scale, ncomp = ncomp.bat,
     keepX = keepX.bat, tol = tol, max.iter = max.iter)
 
     bat_loadings <- plsda_bat$loadings$a
 
-    ##########
-    #stage 3: deflation of batch from the original matrix --#
+    #-- stage 3: deflation of batch from the original matrix --#
     X.temp <- X.scale
     for(h in seq_len(ncomp.bat)){
         a.bat <- bat_loadings[,h]
@@ -346,7 +343,7 @@ PLSDA_batch <- function(X,
     return(invisible(result))
 }
 
-##############################
+
 #' Matrix Deflation
 #'
 #' This function removes the variance of given component \code{t} from the
@@ -368,16 +365,27 @@ PLSDA_batch <- function(X,
 #'
 #' @keywords Internal
 #'
-#' @examples
-#' # A built-in funciton of PLSDA_batch, not separately used.
+#' @export
 #'
-
+#' @examples
+#' # A built-in function of PLSDA_batch, not separately used.
+#' # Not run
+#' data('AD_data')
+#' library(mixOmics)
+#' library(TreeSummarizedExperiment)
+#'
+#' X <- assays(AD_data$EgData)$Clr_value
+#' ad_pca <- pca(X, ncomp = 3)
+#' # the matrix without the information of PC1:
+#' ad.def.mtx <- deflate_mtx(X, ad_pca$variates$X[ ,1])
+#'
+#'
 deflate_mtx <- function(X, t){
     X.res <- X - t %*% (solve(crossprod(t))) %*% (t(t) %*% X)
     return(invisible(X.res))
 }
 
-################################################
+
 #' Partial Least Squares Discriminant Analysis
 #'
 #' This function estimates latent dimensions from the explanatory matrix
@@ -420,8 +428,28 @@ deflate_mtx <- function(X, t){
 #'
 #' @keywords Internal
 #'
+#' @export
+#'
 #' @examples
 #' # A built-in function of PLSDA_batch, not separately used.
+#' # Not run
+#' data('AD_data')
+#' library(mixOmics)
+#' library(TreeSummarizedExperiment)
+#'
+#' X <- assays(AD_data$EgData)$Clr_value
+#' Y.trt <- rowData(AD_data$EgData)$Y.trt
+#' names(Y.trt) <- rownames(AD_data$EgData)
+#'
+#' X.scale <- scale(X, center = TRUE, scale = TRUE)
+#'
+#' # convert Y.trt to be a dummy matrix
+#' Y.trt.mat <- unmap(as.numeric(Y.trt))
+#' Y.trt.scale <- scale(Y.trt.mat, center = TRUE, scale = TRUE)
+#'
+#' ad_plsda.trt <- PLSDA(X.scale, Y.trt.scale, ncomp = 1)
+#' # the latent components associated with Y.trt:
+#' X.compnt <- ad_plsda.trt$latent_comp$t
 #'
 #'
 PLSDA <- function(X, Y, ncomp, keepX = rep(ncol(X), ncomp), tol = 1e-06,
@@ -429,8 +457,6 @@ PLSDA <- function(X, Y, ncomp, keepX = rep(ncol(X), ncomp), tol = 1e-06,
     # Y is dummy matrix
     # input X, Y are scaled
     # don't consider NA value
-
-    # require(mixOmics)
 
     mat.t <- matrix(nrow = nrow(X), ncol = ncomp)
     mat.u <- matrix(nrow = nrow(X), ncol = ncomp)
@@ -443,7 +469,7 @@ PLSDA <- function(X, Y, ncomp, keepX = rep(ncol(X), ncomp), tol = 1e-06,
     for(h in seq_len(ncomp)){
         nx <- ncol(X) - keepX[h]
 
-        # Initialisation
+        #-- Initialisation --#
         M <- crossprod(X.temp, Y.temp)
         svd.M <- svd(M, nu = 1, nv = 1)
         a.old <- svd.M$u
@@ -454,7 +480,7 @@ PLSDA <- function(X, Y, ncomp, keepX = rep(ncol(X), ncomp), tol = 1e-06,
 
         iter <- 1
 
-        # Iteration
+        #-- Iteration --#
         repeat{
             a.new <- t(X.temp) %*%  u
 
@@ -479,9 +505,9 @@ PLSDA <- function(X, Y, ncomp, keepX = rep(ncol(X), ncomp), tol = 1e-06,
 
             if(crossprod(a.new - a.old) < tol){break}
             if(iter == max.iter){
-                warning("Maximum number of iterations reached for the component ",
-                        h, ".", call. = FALSE)
-                break
+            warning("Maximum number of iterations reached for the component ",
+                    h, ".", call. = FALSE)
+            break
             }
 
             a.old <- a.new
@@ -489,7 +515,7 @@ PLSDA <- function(X, Y, ncomp, keepX = rep(ncol(X), ncomp), tol = 1e-06,
             iter <- iter + 1
         }
 
-        # deflation
+        #-- deflation --#
         X.temp <- deflate_mtx(X.temp, t)
         Y.temp <- deflate_mtx(Y.temp, u)
 

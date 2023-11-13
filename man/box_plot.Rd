@@ -44,9 +44,12 @@ This function draws side-by-side box plots for each batch.
 }
 \examples{
 # The first example
+library(TreeSummarizedExperiment) # for functions assays(),rowData()
 data('AD_data')
-ad.clr <- AD_data$EgData$X.clr # centered log ratio transformed data
-ad.batch <- AD_data$EgData$Y.bat # batch information
+# centered log ratio transformed data
+ad.clr <- assays(AD_data$EgData)$Clr_value
+ad.batch <- rowData(AD_data$EgData)$Y.bat # batch information
+names(ad.batch) <- rownames(AD_data$EgData)
 ad.df <- data.frame(value = ad.clr[,1], batch = ad.batch)
 box_plot(df = ad.df, title = 'OTU 12', x.angle = 30)
 

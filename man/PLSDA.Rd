@@ -46,6 +46,24 @@ matrix \code{Y}. It is a built-in function of \code{PLSDA_batch}.
 }
 \examples{
 # A built-in function of PLSDA_batch, not separately used.
+# Not run
+data('AD_data')
+library(mixOmics)
+library(TreeSummarizedExperiment)
+
+X <- assays(AD_data$EgData)$Clr_value
+Y.trt <- rowData(AD_data$EgData)$Y.trt
+names(Y.trt) <- rownames(AD_data$EgData)
+
+X.scale <- scale(X, center = TRUE, scale = TRUE)
+
+# convert Y.trt to be a dummy matrix
+Y.trt.mat <- unmap(as.numeric(Y.trt))
+Y.trt.scale <- scale(Y.trt.mat, center = TRUE, scale = TRUE)
+
+ad_plsda.trt <- PLSDA(X.scale, Y.trt.scale, ncomp = 1)
+# the latent components associated with Y.trt:
+X.compnt <- ad_plsda.trt$latent_comp$t
 
 
 }

@@ -11,23 +11,23 @@
 #' @name AD_data
 #' @docType data
 #' @usage data('AD_data')
-#' @format A list containing three sub-lists of data \code{FullData},
-#' \code{EgData} and \code{CorrectData}:
+#' @format A list containing three TreeSummarizedExperiment objects
+#' \code{FullData}, \code{EgData} and \code{CorrectData}:
 #' \describe{
-#' \item{FullData}{A list containing three data sets: \code{X.count}
-#' which are the raw data represented as a matrix with 75 samples and 567 OTUs;
-#' \code{metadata} which is a data frame containing the meta data information
-#' of samples in \code{X.count}; \code{taxa} which is a data frame containing
-#' the taxonomy of each OTU in \code{X.count}.}
-#' \item{EgData}{A list containing three data sets: \code{X.clr} which are the
-#' filtered and centered log ratio transformed data including 75 samples and
-#' 231 OTUs from the raw data in the \code{FullData} list; \code{Y.trt} which
-#' is a factor of phenol concentrations for each sample that is the effect of
-#' interest in the AD study; \code{Y.bat} which is a factor of sample
-#' processing dates for each sample treated as the batch effect.}
-#' \item{CorrectData}{A list containing seven data sets before or after batch
-#' effect correction using different methods. Each data set includes 75 samples
-#' and 231 OTUs.}}
+#' \item{FullData}{A TreeSummarizedExperiment object containing the counts of 75
+#' samples and 567 OTUs. The meta data information of each sample is stored in
+#' the rowData, while the taxonomy of each OTU is stored in the colData.}
+#' \item{EgData}{A TreeSummarizedExperiment object containing the values of 75
+#' samples and 231 OTUs filtered and centered log ratio transformed from the
+#' \code{FullData} with raw counts.The rowData includes \code{Y.trt} and
+#' \code{Y.bat}. \code{Y.trt} is the effect of interest, which is a factor of
+#' phenol concentrations for each sample in the AD study; \code{Y.bat} is the
+#' batch effect, which is a factor of sample processing dates for each sample.
+#' The taxonomy of each OTU is stored in the colData. The rowTree is built based
+#' on the \code{Y.bat}.}
+#' \item{CorrectData}{A TreeSummarizedExperiment object containing seven
+#' datasets before or after batch effect correction using different methods.
+#' Each assay includes 75 samples and 231 OTUs.}}
 #'
 #' @return None.
 #' @references

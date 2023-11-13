@@ -5,20 +5,18 @@
 \alias{sponge_data}
 \title{Sponge \emph{A. aerophoba} study}
 \format{
-A list containing four data sets:
-\describe{
-\item{X.tss}{The relative abundance data represented as a data
-frame with 32 samples and 24 OTUs.}
-\item{X.clr}{The centered log ratio transformed data including 32 samples
-and 24 OTUs from the \code{X.tss}.}
-\item{Y.trt}{A factor of sponge tissues for each sample that is the effect
-of interest in the sponge study.}
-\item{Y.bat}{A factor of electrophoresis gels where the sample processed for
-each sample treated as the batch effect.}}
+A TreeSummarizedExperiment object containing the relative
+abundance (Tss_value) and centered log ratio transformed values (Clr_value)
+of 32 samples and 24 OTUs. The rowData includes \code{Y.trt} and
+\code{Y.bat}. \code{Y.trt} is the effect of interest, which is a factor of
+sponge tissues for each sample in the sponge study; \code{Y.bat} is the
+batch effect, which is a factor of electrophoresis gels where each sample
+processed. The rowTree is built based on the \code{Y.bat}.
 }
 \source{
 The raw data were downloaded from the referenced article. Filtering
-and normalisation described in our package vignette.
+and normalisation described in
+https://evayiwenwang.github.io/PLSDAbatch_workflow/.
 }
 \usage{
 data('sponge_data')

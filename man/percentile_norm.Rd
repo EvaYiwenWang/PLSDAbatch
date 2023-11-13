@@ -30,11 +30,14 @@ data across batches. Pooled batches must have similar case and control
 cohort definitions.
 }
 \examples{
-
+library(TreeSummarizedExperiment) # for functions assays(),rowData()
 data('AD_data')
-ad.clr <- AD_data$EgData$X.clr # centered log ratio transformed data
-ad.batch <- AD_data$EgData$Y.bat # batch information
-ad.trt <- AD_data$EgData$Y.trt # treatment information
+
+# centered log ratio transformed data
+ad.clr <- assays(AD_data$EgData)$Clr_value
+ad.batch <- rowData(AD_data$EgData)$Y.bat # batch information
+ad.trt <- rowData(AD_data$EgData)$Y.trt # treatment information
+names(ad.batch) <- names(ad.trt) <- rownames(AD_data$EgData)
 ad.PN <- percentile_norm(data = ad.clr, batch = ad.batch,
                             trt = ad.trt, ctrl.grp = '0-0.5')
 

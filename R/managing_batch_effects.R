@@ -1,4 +1,3 @@
-###################################
 #' Linear Regression
 #'
 #' This function fits linear regression (linear model or linear mixed model) on
@@ -73,10 +72,14 @@
 #' @export
 #'
 #' @examples
+#' library(TreeSummarizedExperiment) # for functions assays(),rowData()
 #' data('AD_data')
-#' ad.clr <- AD_data$EgData$X.clr # centered log ratio transformed data
-#' ad.batch <- AD_data$EgData$Y.bat # batch information
-#' ad.trt <- AD_data$EgData$Y.trt # treatment information
+#'
+#' # centered log ratio transformed data
+#' ad.clr <- assays(AD_data$EgData)$Clr_value
+#' ad.batch <- rowData(AD_data$EgData)$Y.bat # batch information
+#' ad.trt <- rowData(AD_data$EgData)$Y.trt # treatment information
+#' names(ad.batch) <- names(ad.trt) <- rownames(AD_data$EgData)
 #' ad.lm <- linear_regres(data = ad.clr, trt = ad.trt,
 #'                        batch.fix = ad.batch,
 #'                        type = 'linear model')
@@ -194,7 +197,6 @@ linear_regres <- function(data,
 }
 
 
-#################################
 #' Percentile score
 #'
 #' This function converts the relative abundance of microbial variables
@@ -218,15 +220,25 @@ linear_regres <- function(data,
 #' @references
 #' \insertRef{gibbons2018correcting}{PLSDAbatch}
 #'
+#' @export
 #'
 #' @examples
 #' # A built-in function of percentile_norm, not separately used.
+#' # Not run
+#' library(TreeSummarizedExperiment)
+#' data('AD_data')
 #'
+#' ad.clr <- assays(AD_data$EgData)$Clr_value
+#' ad.batch <- rowData(AD_data$EgData)$Y.bat
+#' ad.trt <- rowData(AD_data$EgData)$Y.trt
+#' names(ad.batch) <- names(ad.trt) <- rownames(AD_data$EgData)
+#' trt.first.b <- ad.trt[ad.batch == '09/04/2015']
+#' ad.first.b.pn <- percentileofscore(ad.clr[ad.batch == '09/04/2015', ],
+#'                                    which(trt.first.b == '0-0.5'))
 #'
 #'
 percentileofscore <- function(df, control.index){
-    df.percentile <- df
-    df.percentile[seq_len(nrow(df)), seq_len(ncol(df))] <- NA
+    df.percentile <- data.frame()
     for(i in seq_len(ncol(df))){
         control <- sort(df[control.index, i])
         for(j in seq_len(nrow(df))){
@@ -238,10 +250,10 @@ percentileofscore <- function(df, control.index){
 
         }
     }
-    return(df.percentile)
+    return(invisible(df.percentile))
 }
 
-################################
+
 #' Percentile Normalisation
 #'
 #' This function corrects for batch effects in case-control microbiome studies.
@@ -274,17 +286,21 @@ percentileofscore <- function(df, control.index){
 #' @export
 #'
 #' @examples
-#'
+#' library(TreeSummarizedExperiment) # for functions assays(),rowData()
 #' data('AD_data')
-#' ad.clr <- AD_data$EgData$X.clr # centered log ratio transformed data
-#' ad.batch <- AD_data$EgData$Y.bat # batch information
-#' ad.trt <- AD_data$EgData$Y.trt # treatment information
+#'
+#' # centered log ratio transformed data
+#' ad.clr <- assays(AD_data$EgData)$Clr_value
+#' ad.batch <- rowData(AD_data$EgData)$Y.bat # batch information
+#' ad.trt <- rowData(AD_data$EgData)$Y.trt # treatment information
+#' names(ad.batch) <- names(ad.trt) <- rownames(AD_data$EgData)
 #' ad.PN <- percentile_norm(data = ad.clr, batch = ad.batch,
 #'                          trt = ad.trt, ctrl.grp = '0-0.5')
 #'
 percentile_norm <- function(data = data, batch = batch, trt = trt, ctrl.grp){
     batch <- as.factor(batch)
     trt <- as.factor(trt)
+
     trt.list <- list()
     data.pn.df <- data.frame()
     for(i in seq_len(nlevels(batch))){
@@ -296,7 +312,7 @@ percentile_norm <- function(data = data, batch = batch, trt = trt, ctrl.grp){
     }
     names(trt.list) <- levels(batch)
     data.pn.df.reorder <- data.pn.df[rownames(data), ]
-    return(data.pn.df.reorder)
+    return(invisible(data.pn.df.reorder))
 }
 
 

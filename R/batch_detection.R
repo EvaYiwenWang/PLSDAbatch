@@ -1,4 +1,3 @@
-##########################################################################
 #' Principal Component Analysis (PCA) with Density Plots per Component
 #'
 #' This function draws a PCA sample plot with density plots per
@@ -39,11 +38,14 @@
 #' @examples
 #' # The first example
 #' library(mixOmics) # for function pca()
+#' library(TreeSummarizedExperiment) # for functions assays(),rowData()
 #' data('AD_data')
-#' ad.clr <- AD_data$EgData$X.clr # centered log ratio transformed data
+#' # centered log ratio transformed data
+#' ad.clr <- assays(AD_data$EgData)$Clr_value
 #' ad.pca.before <- pca(ad.clr, ncomp = 3, scale = TRUE)
-#' ad.batch <- AD_data$EgData$Y.bat # batch information
-#' ad.trt <- AD_data$EgData$Y.trt # treatment information
+#' ad.batch <- rowData(AD_data$EgData)$Y.bat # batch information
+#' ad.trt <- rowData(AD_data$EgData)$Y.trt # treatment information
+#' names(ad.batch) <- names(ad.trt) <- rownames(AD_data$EgData)
 #' Scatter_Density(object = ad.pca.before, batch = ad.batch, trt = ad.trt)
 #'
 #' # The second example
@@ -126,13 +128,13 @@ Scatter_Density <- function(object,
             legend <- get_legend(pMain)
         }
 
-        grid.arrange(pTop, legend, pMain + theme(legend.position = 'none'), pRight,
-        ncol = 2, nrow = 2, widths = c(3, 1), heights = c(1, 3))
+        grid.arrange(pTop, legend, pMain + theme(legend.position = 'none'),
+                    pRight, ncol = 2, nrow = 2,
+                    widths = c(3, 1), heights = c(1, 3))
 
 }
 
 
-######################################
 #' Box Plot
 #'
 #' This function draws side-by-side box plots for each batch.
@@ -164,9 +166,12 @@ Scatter_Density <- function(object,
 #'
 #' @examples
 #' # The first example
+#' library(TreeSummarizedExperiment) # for functions assays(),rowData()
 #' data('AD_data')
-#' ad.clr <- AD_data$EgData$X.clr # centered log ratio transformed data
-#' ad.batch <- AD_data$EgData$Y.bat # batch information
+#' # centered log ratio transformed data
+#' ad.clr <- assays(AD_data$EgData)$Clr_value
+#' ad.batch <- rowData(AD_data$EgData)$Y.bat # batch information
+#' names(ad.batch) <- rownames(AD_data$EgData)
 #' ad.df <- data.frame(value = ad.clr[,1], batch = ad.batch)
 #' box_plot(df = ad.df, title = 'OTU 12', x.angle = 30)
 #'
@@ -207,7 +212,6 @@ box_plot <- function(df, title = NULL,
 }
 
 
-################################
 #' Density Plot
 #'
 #' This function draws an overlap of multiple density plots for each batch.
@@ -235,9 +239,12 @@ box_plot <- function(df, title = NULL,
 #'
 #' @examples
 #' # The first example
+#' library(TreeSummarizedExperiment) # for functions assays(),rowData()
 #' data('AD_data')
-#' ad.clr <- AD_data$EgData$X.clr # centered log ratio transformed data
-#' ad.batch <- AD_data$EgData$Y.bat # batch information
+#' # centered log ratio transformed data
+#' ad.clr <- assays(AD_data$EgData)$Clr_value
+#' ad.batch <- rowData(AD_data$EgData)$Y.bat # batch information
+#' names(ad.batch) <- rownames(AD_data$EgData)
 #' ad.df <- data.frame(value = ad.clr[,1], batch = ad.batch)
 #' density_plot(df = ad.df, title = 'OTU 12')
 #'
@@ -264,7 +271,8 @@ density_plot <- function(df, title = NULL,
     ggplot(data = df, aes(x = value, fill =  batch)) +
         geom_density(alpha = 0.5) +
         scale_fill_manual(values = color.set) +
-        labs(title = title, x = xlab, y = 'Density', fill = batch.legend.title) +
+        labs(title = title, x = xlab, y = 'Density',
+                fill = batch.legend.title) +
         theme_bw() + theme(plot.title = element_text(hjust = title.hjust),
                         panel.grid = element_blank())
 }

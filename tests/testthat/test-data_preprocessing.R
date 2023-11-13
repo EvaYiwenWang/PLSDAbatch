@@ -1,6 +1,8 @@
 test_that("checking PreFL", {
+  library(TreeSummarizedExperiment)
   data('AD_data')
-  ad.count <- AD_data$FullData$X.count # microbial count data
+
+  ad.count <- assays(AD_data$FullData)$Count # microbial count data
 
   ad.filter.res <- PreFL(data = ad.count)
 

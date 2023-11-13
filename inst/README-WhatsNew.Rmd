@@ -20,3 +20,7 @@ opts_chunk$set( echo = TRUE, eval = FALSE, warning = FALSE, message = FALSE)
 #### April 2023
 
 * submitted to Bioconductor.
+
+#### November 2023
+
+* re-submitted to Bioconductor.
