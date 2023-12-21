@@ -247,9 +247,10 @@ percentileofscore <- function(df, control.index){
             sum(control > df[j, i]))/length(control)
             percentile <- (percentile.strick + percentile.weak)/2
             df.percentile[j, i] <- percentile
-
         }
     }
+    rownames(df.percentile) <- rownames(df)
+    colnames(df.percentile) <- colnames(df)
     return(invisible(df.percentile))
 }
 

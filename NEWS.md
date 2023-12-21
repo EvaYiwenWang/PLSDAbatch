@@ -19,3 +19,10 @@ Imports to ensure the generation of vignette
                 Use `TreeSummarizedExperiment` package to reshape datasets;
                 Remove `colorize()`
   * R: Update `for()` loops; Remove extra `###` lines
+
+# Version: 0.99.3
+* Date: 2023-12-21
+* Text: Debug percentileofscore
+* Details: Debug the function `percentileofscore()`, thus the generated data 
+frame has rownames and colnames as the input data frame to ensure the operation 
+of function `percentile_norm()`
