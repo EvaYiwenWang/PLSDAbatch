@@ -27,6 +27,7 @@
 #' @export
 #'
 #' @examples
+#' if (requireNamespace("vegan")) {
 #' ## First example
 #' library(vegan) # for function varpart()
 #' library(TreeSummarizedExperiment) # for functions assays(),rowData()
@@ -73,7 +74,7 @@
 #'                                     function(x){x/sum(x)})))
 #'
 #' partVar_plot(prop.df = ad.prop.df)
-#'
+#' }
 #'
 partVar_plot <- function(prop.df,
                         text.cex = 3,
