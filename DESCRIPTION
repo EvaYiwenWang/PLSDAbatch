@@ -19,13 +19,13 @@ Imports:
     lmerTest,
     performance,
     grid,
-    stats,
+    stats
+Suggests: 
+    vegan,
     pheatmap,
     Biobase,
     BiocStyle,
-    TreeSummarizedExperiment
-Suggests: 
-    vegan,
+    TreeSummarizedExperiment,
     knitr,
     rmarkdown,
     testthat,
@@ -41,7 +41,7 @@ biocViews:
     Visualization
 VignetteBuilder: knitr
 RdMacros: Rdpack
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.1
 Encoding: UTF-8
 URL: https://github.com/EvaYiwenWang/PLSDAbatch
 BugReports: https://github.com/EvaYiwenWang/PLSDAbatch/issues/
