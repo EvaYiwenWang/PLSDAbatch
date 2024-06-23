@@ -27,7 +27,8 @@
 #' @export
 #'
 #' @examples
-#' if (requireNamespace("vegan")) {
+#' if (requireNamespace("vegan") && 
+#'   requireNamespace("TreeSummarizedExperiment")) {
 #' ## First example
 #' library(vegan) # for function varpart()
 #' library(TreeSummarizedExperiment) # for functions assays(),rowData()

@@ -36,6 +36,7 @@
 #' \insertRef{butler2018integrating}{PLSDAbatch}
 #'
 #' @examples
+#' if (requireNamespace("TreeSummarizedExperiment")) {
 #' library(TreeSummarizedExperiment) # for functions assays(),rowData()
 #' data('sponge_data')
 #' X <- assays(sponge_data)$Clr_value # centered log ratio transformed data
@@ -43,7 +44,7 @@
 #' names(batch) <- rownames(sponge_data)
 #'
 #' alignment_score(data = X, batch = batch, var = 0.95, k = 3, ncomp = 20)
-#'
+#' }
 #' @export
 alignment_score <- function(data,
                             batch,
