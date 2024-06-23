@@ -23,6 +23,7 @@
 #' @export
 #'
 #' @examples
+#' if (requireNamespace("TreeSummarizedExperiment")) {
 #' library(TreeSummarizedExperiment) # for functions assays()
 #' data('AD_data')
 #'
@@ -34,8 +35,7 @@
 #'
 #' # The filtered AD count data
 #' ad.filter <- ad.filter.res$data.filter
-#'
-#'
+#' }
 PreFL <- function(data,
                 keep.spl = 10,
                 keep.var = 0.01){

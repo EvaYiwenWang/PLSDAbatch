@@ -72,6 +72,7 @@
 #' @export
 #'
 #' @examples
+#' if (requireNamespace("TreeSummarizedExperiment")) {
 #' library(TreeSummarizedExperiment) # for functions assays(),rowData()
 #' data('AD_data')
 #'
@@ -85,7 +86,7 @@
 #'                        type = 'linear model')
 #' ad.p.adj <- ad.lm$adj.p
 #' head(ad.lm$AIC)
-#'
+#' }
 linear_regres <- function(data,
                         trt,
                         batch.fix = NULL,

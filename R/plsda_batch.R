@@ -80,6 +80,7 @@
 #' \insertRef{wang2020multivariate}{PLSDAbatch}
 #'
 #' @examples
+#' if (requireNamespace("TreeSummarizedExperiment")) {
 #' ## First example
 #' ## PLSDA-batch
 #' library(TreeSummarizedExperiment) # for functions assays(),rowData()
@@ -95,7 +96,7 @@
 #' ## sparse PLSDA-batch
 #' ad_splsda_batch <- PLSDA_batch(X, Y.trt, Y.bat, ncomp.trt = 1,
 #'                                keepX.trt = 30, ncomp.bat = 5)
-#'
+#' }
 #' @export
 PLSDA_batch <- function(X,
                         Y.trt = NULL,
@@ -368,19 +369,20 @@ PLSDA_batch <- function(X,
 #' @export
 #'
 #' @examples
-#' # A built-in function of PLSDA_batch, not separately used.
-#' # Not run
-#' data('AD_data')
-#' library(mixOmics)
-#' library(TreeSummarizedExperiment)
+#' if (requireNamespace("TreeSummarizedExperiment")) {
+#'     # A built-in function of PLSDA_batch, not separately used.
+#'     # Not run
+#'     data("AD_data")
+#'     library(mixOmics)
+#'     library(TreeSummarizedExperiment)
 #'
-#' X <- assays(AD_data$EgData)$Clr_value
-#' ad_pca <- pca(X, ncomp = 3)
-#' # the matrix without the information of PC1:
-#' ad.def.mtx <- deflate_mtx(X, ad_pca$variates$X[ ,1])
+#'     X <- assays(AD_data$EgData)$Clr_value
+#'     ad_pca <- pca(X, ncomp = 3)
+#'     # the matrix without the information of PC1:
+#'     ad.def.mtx <- deflate_mtx(X, ad_pca$variates$X[, 1])
+#' }
 #'
-#'
-deflate_mtx <- function(X, t){
+deflate_mtx <- function(X, t) {
     X.res <- X - t %*% (solve(crossprod(t))) %*% (t(t) %*% X)
     return(invisible(X.res))
 }
@@ -431,6 +433,8 @@ deflate_mtx <- function(X, t){
 #' @export
 #'
 #' @examples
+#' if (requireNamespace("TreeSummarizedExperiment") &&
+#'   requireNamespace("mixOmics")) {
 #' # A built-in function of PLSDA_batch, not separately used.
 #' # Not run
 #' data('AD_data')
@@ -450,8 +454,7 @@ deflate_mtx <- function(X, t){
 #' ad_plsda.trt <- PLSDA(X.scale, Y.trt.scale, ncomp = 1)
 #' # the latent components associated with Y.trt:
 #' X.compnt <- ad_plsda.trt$latent_comp$t
-#'
-#'
+#' }
 PLSDA <- function(X, Y, ncomp, keepX = rep(ncol(X), ncomp), tol = 1e-06,
                 max.iter = 500){
     # Y is dummy matrix
