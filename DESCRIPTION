@@ -21,11 +21,11 @@ Imports:
     grid,
     stats,
     pheatmap,
-    vegan,
     Biobase,
     BiocStyle,
     TreeSummarizedExperiment
 Suggests: 
+    vegan,
     knitr,
     rmarkdown,
     testthat,
