@@ -5,11 +5,11 @@
 \title{Alignment Scores for Evaluating the Degree of Mixing Samples}
 \usage{
 alignment_score(
-    data,
-    batch,
-    var = 0.95,
-    k = round(0.1 * nrow(data)),
-    ncomp = 20
+  data,
+  batch,
+  var = 0.95,
+  k = round(0.1 * nrow(data)),
+  ncomp = 20
 )
 }
 \arguments{
@@ -42,6 +42,7 @@ in the batch corrected data. It is based on the dissimilarity matrix from
 Principal Component Analysis.
 }
 \examples{
+if (requireNamespace("TreeSummarizedExperiment")) {
 library(TreeSummarizedExperiment) # for functions assays(),rowData()
 data('sponge_data')
 X <- assays(sponge_data)$Clr_value # centered log ratio transformed data
@@ -49,7 +50,7 @@ batch <- rowData(sponge_data)$Y.bat # batch information
 names(batch) <- rownames(sponge_data)
 
 alignment_score(data = X, batch = batch, var = 0.95, k = 3, ncomp = 20)
-
+}
 }
 \references{
 \insertRef{butler2018integrating}{PLSDAbatch}

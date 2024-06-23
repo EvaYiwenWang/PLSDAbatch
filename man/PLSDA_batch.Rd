@@ -5,17 +5,17 @@
 \title{Partial Least Squares Discriminant Analysis for Batch Effect Correction}
 \usage{
 PLSDA_batch(
-    X,
-    Y.trt = NULL,
-    Y.bat,
-    ncomp.trt = 2,
-    ncomp.bat = 2,
-    keepX.trt = rep(ncol(X), ncomp.trt),
-    keepX.bat = rep(ncol(X), ncomp.bat),
-    max.iter = 500,
-    tol = 1e-06,
-    near.zero.var = TRUE,
-    balance = TRUE
+  X,
+  Y.trt = NULL,
+  Y.bat,
+  ncomp.trt = 2,
+  ncomp.bat = 2,
+  keepX.trt = rep(ncol(X), ncomp.trt),
+  keepX.bat = rep(ncol(X), ncomp.bat),
+  max.iter = 500,
+  tol = 1e-06,
+  near.zero.var = TRUE,
+  balance = TRUE
 )
 }
 \arguments{
@@ -98,6 +98,7 @@ PLSDA-batch, the \code{balance} should be set to \code{FALSE}, and it cannot
 deal with the nested \code{batch x treatment design}.
 }
 \examples{
+if (requireNamespace("TreeSummarizedExperiment")) {
 ## First example
 ## PLSDA-batch
 library(TreeSummarizedExperiment) # for functions assays(),rowData()
@@ -112,8 +113,8 @@ ad_X.corrected <- ad_plsda_batch$X.nobatch # batch corrected data
 ## Second example
 ## sparse PLSDA-batch
 ad_splsda_batch <- PLSDA_batch(X, Y.trt, Y.bat, ncomp.trt = 1,
-                                keepX.trt = 30, ncomp.bat = 5)
-
+                               keepX.trt = 30, ncomp.bat = 5)
+}
 }
 \references{
 \insertRef{wang2020managing}{PLSDAbatch}

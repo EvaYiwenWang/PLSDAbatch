@@ -36,7 +36,7 @@ ad.trt <- rowData(AD_data$EgData)$Y.trt
 names(ad.batch) <- names(ad.trt) <- rownames(AD_data$EgData)
 trt.first.b <- ad.trt[ad.batch == '09/04/2015']
 ad.first.b.pn <- percentileofscore(ad.clr[ad.batch == '09/04/2015', ],
-                                    which(trt.first.b == '0-0.5'))
+                                   which(trt.first.b == '0-0.5'))
 
 
 }

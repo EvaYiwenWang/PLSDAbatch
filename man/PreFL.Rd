@@ -26,6 +26,7 @@ This function prefilters the data to remove samples or microbial variables
 with excess zeroes.
 }
 \examples{
+if (requireNamespace("TreeSummarizedExperiment")) {
 library(TreeSummarizedExperiment) # for functions assays()
 data('AD_data')
 
@@ -37,8 +38,7 @@ ad.zero.prob <- ad.filter.res$zero.prob
 
 # The filtered AD count data
 ad.filter <- ad.filter.res$data.filter
-
-
+}
 }
 \references{
 \insertRef{le2016mixmc}{PLSDAbatch}

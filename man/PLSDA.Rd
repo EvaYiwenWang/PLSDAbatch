@@ -45,6 +45,8 @@ This function estimates latent dimensions from the explanatory matrix
 matrix \code{Y}. It is a built-in function of \code{PLSDA_batch}.
 }
 \examples{
+if (requireNamespace("TreeSummarizedExperiment") &&
+  requireNamespace("mixOmics")) {
 # A built-in function of PLSDA_batch, not separately used.
 # Not run
 data('AD_data')
@@ -64,8 +66,7 @@ Y.trt.scale <- scale(Y.trt.mat, center = TRUE, scale = TRUE)
 ad_plsda.trt <- PLSDA(X.scale, Y.trt.scale, ncomp = 1)
 # the latent components associated with Y.trt:
 X.compnt <- ad_plsda.trt$latent_comp$t
-
-
+}
 }
 \references{
 \insertRef{barker2003partial}{PLSDAbatch}

@@ -21,17 +21,18 @@ input matrix \code{X}. \deqn{\hat{X} = X - t (t^{\top}t)^{-1}t^{\top}X}
 It is a built-in function of \code{PLSDA_batch}.
 }
 \examples{
-# A built-in function of PLSDA_batch, not separately used.
-# Not run
-data('AD_data')
-library(mixOmics)
-library(TreeSummarizedExperiment)
+if (requireNamespace("TreeSummarizedExperiment")) {
+    # A built-in function of PLSDA_batch, not separately used.
+    # Not run
+    data("AD_data")
+    library(mixOmics)
+    library(TreeSummarizedExperiment)
 
-X <- assays(AD_data$EgData)$Clr_value
-ad_pca <- pca(X, ncomp = 3)
-# the matrix without the information of PC1:
-ad.def.mtx <- deflate_mtx(X, ad_pca$variates$X[ ,1])
-
+    X <- assays(AD_data$EgData)$Clr_value
+    ad_pca <- pca(X, ncomp = 3)
+    # the matrix without the information of PC1:
+    ad.def.mtx <- deflate_mtx(X, ad_pca$variates$X[, 1])
+}
 
 }
 \references{

@@ -39,7 +39,7 @@ ad.batch <- rowData(AD_data$EgData)$Y.bat # batch information
 ad.trt <- rowData(AD_data$EgData)$Y.trt # treatment information
 names(ad.batch) <- names(ad.trt) <- rownames(AD_data$EgData)
 ad.PN <- percentile_norm(data = ad.clr, batch = ad.batch,
-                            trt = ad.trt, ctrl.grp = '0-0.5')
+                         trt = ad.trt, ctrl.grp = '0-0.5')
 
 }
 \references{

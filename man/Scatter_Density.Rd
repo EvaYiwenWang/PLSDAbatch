@@ -5,19 +5,19 @@
 \title{Principal Component Analysis (PCA) with Density Plots per Component}
 \usage{
 Scatter_Density(
-    object,
-    batch = NULL,
-    trt = NULL,
-    xlim = NULL,
-    ylim = NULL,
-    color.set = NULL,
-    batch.legend.title = "Batch",
-    trt.legend.title = "Treatment",
-    density.lwd = 0.2,
-    title = NULL,
-    title.cex = 1.5,
-    legend.cex = 0.7,
-    legend.title.cex = 0.75
+  object,
+  batch = NULL,
+  trt = NULL,
+  xlim = NULL,
+  ylim = NULL,
+  color.set = NULL,
+  batch.legend.title = "Batch",
+  trt.legend.title = "Treatment",
+  density.lwd = 0.2,
+  title = NULL,
+  title.cex = 1.5,
+  legend.cex = 0.7,
+  legend.title.cex = 0.75
 )
 }
 \arguments{
@@ -58,13 +58,15 @@ This function draws a PCA sample plot with density plots per
 principal component.
 }
 \examples{
+if (requireNamespace("mixOmics") && 
+  requireNamespace("TreeSummarizedExperiment")) {
 # The first example
 library(mixOmics) # for function pca()
 library(TreeSummarizedExperiment) # for functions assays(),rowData()
 data('AD_data')
 # centered log ratio transformed data
 ad.clr <- assays(AD_data$EgData)$Clr_value
-ad.pca.before <- pca(ad.clr, ncomp = 3, scale = TRUE)
+ad.pca.before <- mixOmics::pca(ad.clr, ncomp = 3, scale = TRUE)
 ad.batch <- rowData(AD_data$EgData)$Y.bat # batch information
 ad.trt <- rowData(AD_data$EgData)$Y.trt # treatment information
 names(ad.batch) <- names(ad.trt) <- rownames(AD_data$EgData)
@@ -74,7 +76,7 @@ Scatter_Density(object = ad.pca.before, batch = ad.batch, trt = ad.trt)
 colorlist <- rainbow(10)
 Scatter_Density(object = ad.pca.before, batch = ad.batch, trt = ad.trt,
                 color.set = colorlist)
-
+}
 }
 \seealso{
 \code{\link{box_plot}}, \code{\link{density_plot}},

@@ -5,13 +5,13 @@
 \title{Linear Regression}
 \usage{
 linear_regres(
-    data,
-    trt,
-    batch.fix = NULL,
-    batch.fix2 = NULL,
-    batch.random = NULL,
-    type = "linear model",
-    p.adjust.method = "fdr"
+  data,
+  trt,
+  batch.fix = NULL,
+  batch.fix2 = NULL,
+  batch.random = NULL,
+  type = "linear model",
+  p.adjust.method = "fdr"
 )
 }
 \arguments{
@@ -81,6 +81,7 @@ batch effects. It can help to decide whether it is better to include
 batch effects.
 }
 \examples{
+if (requireNamespace("TreeSummarizedExperiment")) {
 library(TreeSummarizedExperiment) # for functions assays(),rowData()
 data('AD_data')
 
@@ -90,11 +91,11 @@ ad.batch <- rowData(AD_data$EgData)$Y.bat # batch information
 ad.trt <- rowData(AD_data$EgData)$Y.trt # treatment information
 names(ad.batch) <- names(ad.trt) <- rownames(AD_data$EgData)
 ad.lm <- linear_regres(data = ad.clr, trt = ad.trt,
-                        batch.fix = ad.batch,
-                        type = 'linear model')
+                       batch.fix = ad.batch,
+                       type = 'linear model')
 ad.p.adj <- ad.lm$adj.p
 head(ad.lm$AIC)
-
+}
 }
 \references{
 \insertRef{daniel2020performance}{PLSDAbatch}

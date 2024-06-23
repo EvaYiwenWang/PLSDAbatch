@@ -5,12 +5,12 @@
 \title{Density Plot}
 \usage{
 density_plot(
-    df,
-    title = NULL,
-    batch.legend.title = "Batch",
-    xlab = "Value",
-    color.set = NULL,
-    title.hjust = 0.5
+  df,
+  title = NULL,
+  batch.legend.title = "Batch",
+  xlab = "Value",
+  color.set = NULL,
+  title.hjust = 0.5
 )
 }
 \arguments{

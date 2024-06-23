@@ -5,12 +5,12 @@
 \title{Partitioned Variance Plot}
 \usage{
 partVar_plot(
-    prop.df,
-    text.cex = 3,
-    x.angle = 60,
-    x.hjust = 1,
-    title = NULL,
-    color.set = NULL
+  prop.df,
+  text.cex = 3,
+  x.angle = 60,
+  x.hjust = 1,
+  title = NULL,
+  color.set = NULL
 )
 }
 \arguments{
@@ -38,6 +38,8 @@ This function draws a partitioned variance plot explained
 by different sources.
 }
 \examples{
+if (requireNamespace("vegan") && 
+  requireNamespace("TreeSummarizedExperiment")) {
 ## First example
 library(vegan) # for function varpart()
 library(TreeSummarizedExperiment) # for functions assays(),rowData()
@@ -50,11 +52,11 @@ names(ad.batch) <- names(ad.trt) <- rownames(AD_data$EgData)
 
 ad.factors.df <- data.frame(trt = ad.trt, batch = ad.batch)
 rda.res <- varpart(ad.clr, ~ trt, ~ batch,
-                    data = ad.factors.df, scale = TRUE)
+                   data = ad.factors.df, scale = TRUE)
 
 ad.prop.df <- data.frame(Treatment = NA, Batch = NA,
-                            Intersection = NA,
-                            Residuals = NA)
+                         Intersection = NA,
+                         Residuals = NA)
 ad.prop.df[1,] <- rda.res$part$indfract$Adj.R.squared
 
 ad.prop.df <- ad.prop.df[, c(1,3,2,4)]
@@ -68,12 +70,12 @@ partVar_plot(prop.df = ad.prop.df)
 # a list of data corrected from different methods
 ad.corrected.list <- assays(AD_data$CorrectData)
 ad.prop.df <- data.frame(Treatment = NA, Batch = NA,
-                            Intersection = NA,
-                            Residuals = NA)
+                         Intersection = NA,
+                         Residuals = NA)
 for(i in seq_len(length(ad.corrected.list))){
-    rda.res <- varpart(ad.corrected.list[[i]], ~ trt, ~ batch,
+  rda.res <- varpart(ad.corrected.list[[i]], ~ trt, ~ batch,
                     data = ad.factors.df, scale = TRUE)
-    ad.prop.df[i, ] <- rda.res$part$indfract$Adj.R.squared}
+  ad.prop.df[i, ] <- rda.res$part$indfract$Adj.R.squared}
 
 rownames(ad.prop.df) <- names(ad.corrected.list)
 
@@ -84,7 +86,7 @@ ad.prop.df <- as.data.frame(t(apply(ad.prop.df, 1,
                                     function(x){x/sum(x)})))
 
 partVar_plot(prop.df = ad.prop.df)
-
+}
 
 }
 \seealso{

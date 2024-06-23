@@ -5,14 +5,14 @@
 \title{Box Plot}
 \usage{
 box_plot(
-    df,
-    title = NULL,
-    batch.legend.title = "Batch",
-    ylab = "Value",
-    color.set = NULL,
-    x.angle = 0,
-    x.hjust = 0.5,
-    x.vjust = 0.5
+  df,
+  title = NULL,
+  batch.legend.title = "Batch",
+  ylab = "Value",
+  color.set = NULL,
+  x.angle = 0,
+  x.hjust = 0.5,
+  x.vjust = 0.5
 )
 }
 \arguments{
