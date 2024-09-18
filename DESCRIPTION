@@ -1,7 +1,7 @@
 Package: PLSDAbatch
 Type: Package
 Title: PLSDA-batch
-Version: 1.0.1
+Version: 1.1.1
 Authors@R: 
     c(person(given = "Yiwen", family = "Wang", middle = "(Eva)", role = c("aut", "cre"), email = "anjiwangyiwen@gmail.com", comment=c(ORCID="0000-0002-7067-9093")),
       person(given = "Kim-Anh", family = "Le Cao", role = "aut", email = "kimanh.lecao@unimelb.edu.au"))
