@@ -26,3 +26,8 @@ Imports to ensure the generation of vignette
 * Details: Debug the function `percentileofscore()`, thus the generated data 
 frame has rownames and colnames as the input data frame to ensure the operation 
 of function `percentile_norm()`
+
+# Version: 1.0.1
+* Date: 2024-09-18
+* Text: pca function clash
+* Details: Avoid the clash of function `pca()` from vegan and mixOmics packages

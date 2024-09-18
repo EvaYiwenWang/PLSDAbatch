@@ -21,3 +21,6 @@ opts_chunk$set( echo = TRUE, eval = FALSE, warning = FALSE, message = FALSE)
 
 * submitted to Bioconductor.
 
+#### September 2024
+
+* fixed bugs: the clash of functions from dependencies.

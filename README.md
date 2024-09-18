@@ -99,3 +99,7 @@ mentioned simulations and analyses in the paper are separately stored
 #### April 2023
 
 - submitted to Bioconductor.
+
+#### September 2024
+
+- fixed bugs: the clash of functions from dependencies.
