@@ -31,3 +31,21 @@ of function `percentile_norm()`
 * Date: 2024-09-18
 * Text: pca function clash
 * Details: Avoid the clash of function `pca()` from vegan and mixOmics packages
+
+# Version: 1.99.0
+* Date: 2025-12-26
+* Text: improve usability
+* Details: 
+  - Added a `mode` argument to `PLSDA_batch()`.
+  - Added a `criterion` argument to `linear_regres()` to select P-values
+    from the optimal model based on the specified criterion.
+  - Added a `return.model` arugument to `linear_regres()` to reduce memory
+    usage when set to `FALSE`.
+  - Extended `Scatter_Density()` to support any multivariate method that
+    returns component scores, including PCA and PLS, with corresponding
+    arguments updated.
+  - Added `lighten()` and `darken()` functions for enhanced color
+    generation.
+  - Refined multiple functions to improve usability.
+  - Updated the vignette accordingly.
+

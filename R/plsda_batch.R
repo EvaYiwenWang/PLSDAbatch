@@ -40,6 +40,10 @@
 #' argument to \code{FALSE} extends \code{PLSDA-batch} to
 #' \code{weighted PLSDA-batch}. \code{wPLSDA-batch} can deal with highly
 #' unbalanced designs but not the nested design. Default value is \code{TRUE}.
+#' @param mode Character, either \code{"regression"} or \code{"canonical"}.
+#' Default mode is 'regression', which is recommended for most use cases.
+#' If you want to reproduce previous results obtained from PLSDAbatch <= 1.6.0,
+#' please explicitly set mode = 'canonical'.
 #'
 #' @return \code{PLSDA_batch} returns a list that contains
 #' the following components:
@@ -69,7 +73,7 @@
 #' \item{weight}{The sample weights, all \eqn{1} for a balanced
 #' \code{batch x treatment design}.}
 #'
-#' @author Yiwen Wang, Kim-Anh Lê Cao
+#' @author Yiwen Wang, Kim-Anh Le Cao
 #'
 #' @seealso \code{\link{linear_regres}} and \code{\link{percentile_norm}} as
 #' the other methods for batch effect management.
@@ -80,21 +84,38 @@
 #' \insertRef{wang2020multivariate}{PLSDAbatch}
 #'
 #' @examples
-#' ## First example
-#' ## PLSDA-batch
-#' library(TreeSummarizedExperiment) # for functions assays(),rowData()
-#' data('AD_data')
-#' X <- assays(AD_data$EgData)$Clr_value # centered log ratio transformed data
-#' Y.trt <- rowData(AD_data$EgData)$Y.trt # treatment information
-#' Y.bat <- rowData(AD_data$EgData)$Y.bat # batch information
-#' names(Y.bat) <- names(Y.trt) <- rownames(AD_data$EgData)
-#' ad_plsda_batch <- PLSDA_batch(X, Y.trt, Y.bat, ncomp.trt = 1, ncomp.bat = 5)
-#' ad_X.corrected <- ad_plsda_batch$X.nobatch # batch corrected data
+#' if (requireNamespace("SummarizedExperiment", quietly = TRUE)) {
+#'     ## First example
+#'     ## PLSDA-batch
+#'     data("AD_data")
 #'
-#' ## Second example
-#' ## sparse PLSDA-batch
-#' ad_splsda_batch <- PLSDA_batch(X, Y.trt, Y.bat, ncomp.trt = 1,
-#'                                keepX.trt = 30, ncomp.bat = 5)
+#'     X <- SummarizedExperiment::assays(AD_data$EgData)$Clr_value # centered log ratio transformed data
+#'     Y.trt <- SummarizedExperiment::rowData(AD_data$EgData)$Y.trt # treatment information
+#'     Y.bat <- SummarizedExperiment::rowData(AD_data$EgData)$Y.bat # batch information
+#'     names(Y.bat) <- names(Y.trt) <- rownames(AD_data$EgData)
+#'
+#'     ad_plsda_batch <- PLSDA_batch(X, Y.trt, Y.bat,
+#'         ncomp.trt = 1,
+#'         ncomp.bat = 4, mode = "regression"
+#'     )
+#'     ad_X.corrected <- ad_plsda_batch$X.nobatch # batch corrected data
+#'
+#'     ## Second example
+#'     ## sparse PLSDA-batch
+#'     ad_splsda_batch <- PLSDA_batch(X, Y.trt, Y.bat,
+#'         ncomp.trt = 1,
+#'         keepX.trt = 100, ncomp.bat = 4,
+#'         mode = "regression"
+#'     )
+#'
+#'     ## Third example
+#'     ## weighted PLSDA-batch
+#'     ad_wplsda_batch <- PLSDA_batch(X, Y.trt, Y.bat,
+#'         ncomp.trt = 1,
+#'         ncomp.bat = 4, balance = FALSE,
+#'         mode = "regression"
+#'     )
+#' }
 #'
 #' @export
 PLSDA_batch <- function(X,
@@ -102,58 +123,77 @@ PLSDA_batch <- function(X,
                         Y.bat,
                         ncomp.trt = 2,
                         ncomp.bat = 2,
-                        keepX.trt = rep(ncol(X), ncomp.trt),
-                        keepX.bat = rep(ncol(X), ncomp.bat),
+                        keepX.trt = NULL,
+                        keepX.bat = NULL,
                         max.iter = 500,
                         tol = 1e-06,
                         near.zero.var = TRUE,
-                        balance = TRUE){
-
+                        balance = TRUE,
+                        mode = c("regression", "canonical")) {
     # balance = T: the design of batch-treatment is balanced
 
+    # If user does not specify mode, set new default = "regression"
+    # and warn them about the API change
+    if (missing(mode)) {
+        mode <- "regression"
+
+        warning(
+            "PLSDA_batch(): A new argument 'mode' has been introduced.\n",
+            "Default mode is now 'regression', which is recommended for most use cases.\n",
+            "If you want to reproduce previous results obtained from PLSDAbatch <= 1.6.0,\n",
+            "please explicitly set mode = 'canonical'.",
+            call. = FALSE
+        )
+    } else {
+        # user explicitly specifies mode, so we don't warn
+        mode <- match.arg(mode, c("regression", "canonical"))
+    }
+
     #-- validation of arguments --#
-    if(length(dim(X)) != 2){
+    if (length(dim(X)) != 2) {
         stop("'X' must be a numeric matrix.")
     }
 
     X <- as.matrix(X)
 
-    if(!is.numeric(X)){
+    if (!is.numeric(X)) {
         stop("'X' must be a numeric matrix.")
     }
 
     n <- nrow(X)
 
-    if(!is.null(dim(Y.bat))){
+    if (!is.null(dim(Y.bat))) {
         stop("'Y.bat' should be a factor or a class vector.")
     }
 
     Y.bat <- as.factor(Y.bat)
-    Y.bat.mat <- unmap(as.numeric(Y.bat))
+    Y.bat.mat <- mixOmics::unmap(as.numeric(Y.bat))
     Y.bat.mat <- as.matrix(Y.bat.mat)
     q.bat <- ncol(Y.bat.mat)
 
-    if(n != nrow(Y.bat.mat)){
+    if (n != nrow(Y.bat.mat)) {
         stop("unequal number of rows in 'X' and 'Y.bat'.")
     }
 
-    if(is.null(ncomp.bat) || !is.numeric(ncomp.bat) || ncomp.bat <= 0){
+    if (is.null(ncomp.bat) ||
+        !is.numeric(ncomp.bat) || ncomp.bat <= 0) {
         stop("invalid number of variates, 'ncomp.bat'.")
     }
 
     ncomp.bat <- round(ncomp.bat)
 
 
-    if(near.zero.var == TRUE){
-        nzv <- nearZeroVar(X)
+    if (near.zero.var) {
+        nzv <- mixOmics::nearZeroVar(X)
 
-        if(length(nzv$Position > 0)){
-            warning("Zero- or near-zero variance predictors.\nReset predictors
-            matrix to not near-zero variance predictors.\nSee $nzv
-            for problematic predictors.")
+        if (length(nzv$Position) > 0) {
+            warning(
+                "Zero- or near-zero variance predictors removed.\n",
+                "See $nzv$Position for problematic predictors."
+            )
             X <- X[, -nzv$Position, drop = FALSE]
 
-            if(ncol(X) == 0){
+            if (ncol(X) == 0) {
                 stop("No more predictors")
             }
         }
@@ -161,109 +201,144 @@ PLSDA_batch <- function(X,
 
     p <- ncol(X)
 
-
-    if(ncomp.bat > p){
-        warning("Reset maximum number of variates 'ncomp.bat' to ncol(X) = ",
-            p, ".")
+    if (ncomp.bat > p) {
+        warning(
+            "Reset maximum number of variates 'ncomp.bat' to ncol(X) = ",
+            p,
+            "."
+        )
         ncomp.bat <- p
     }
 
-
-    if(length(keepX.bat) != ncomp.bat){
-        stop("length of 'keepX.bat' must be equal to ", ncomp.bat, ".")
+    # For batch
+    if (is.null(keepX.bat)) {
+        keepX.bat <- rep(p, ncomp.bat)
+    }
+    if (length(keepX.bat) != ncomp.bat) {
+        stop(
+            "length of 'keepX.bat' must be equal to 'ncomp.bat' (",
+            ncomp.bat,
+            ")."
+        )
+    }
+    if (any(keepX.bat > p)) {
+        stop(
+            "each element of 'keepX.bat' must be <= number of predictors p = ",
+            p,
+            "."
+        )
     }
 
-    if(any(keepX.bat > p)){
-        stop("each component of 'keepX' must be lower than or equal to ",
-            p, ".")
-    }
 
     #-- initialisation of matrices --#
-    if(is.null(rownames(X))){
-        if(is.null(names(Y.bat))){
+    if (is.null(rownames(X))) {
+        if (is.null(names(Y.bat))) {
             rownames(X) <- rownames(Y.bat.mat) <-
-                names(Y.bat) <- paste('S', seq_len(n))
+                names(Y.bat) <- paste("S", seq_len(n))
         }
         rownames(X) <- rownames(Y.bat.mat) <- names(Y.bat)
     }
     rownames(Y.bat.mat) <- rownames(X)
 
-    if(is.null(colnames(X))){
-        colnames(X) <- paste0('X', seq_len(p))
+    if (is.null(colnames(X))) {
+        colnames(X) <- paste0("X", seq_len(p))
     }
 
     colnames(Y.bat.mat) <- levels(Y.bat)
 
-    weight <- rep(1,nrow(X))
+    weight <- rep(1, nrow(X))
 
-    if(!is.null(Y.trt)){
+    if (!is.null(Y.trt)) {
         # Testing the input Y
-        if(!is.null(dim(Y.trt))){
+        if (!is.null(dim(Y.trt))) {
             stop("'Y.trt' should be a factor or a class vector.")
         }
 
         Y.trt <- as.factor(Y.trt)
-        Y.trt.mat <- unmap(as.numeric(Y.trt))
+        Y.trt.mat <- mixOmics::unmap(as.numeric(Y.trt))
         Y.trt.mat <- as.matrix(Y.trt.mat)
         q.trt <- ncol(Y.trt.mat)
 
-        if(n != nrow(Y.trt.mat)){
+        if (n != nrow(Y.trt.mat)) {
             stop("unequal number of rows in 'X' and 'Y.trt'.")
         }
 
-        if(is.null(ncomp.trt) || !is.numeric(ncomp.trt) || ncomp.trt <= 0){
+        if (is.null(ncomp.trt) ||
+            !is.numeric(ncomp.trt) || ncomp.trt <= 0) {
             stop("invalid number of variates, 'ncomp.trt'.")
         }
 
         ncomp.trt <- round(ncomp.trt)
 
 
-        if(ncomp.trt > p){
-        warning("Reset maximum number of variates 'ncomp.trt' to ncol(X) = ",
-            p, ".")
-        ncomp.trt <- p
+        if (ncomp.trt > p) {
+            warning(
+                "Reset maximum number of variates 'ncomp.trt' to ncol(X) = ",
+                p,
+                "."
+            )
+            ncomp.trt <- p
         }
 
-        if(length(keepX.trt) != ncomp.trt){
-            stop("length of 'keepX.trt' must be equal to ", ncomp.trt, ".")
+        # For trt
+        if (is.null(keepX.trt)) {
+            keepX.trt <- rep(p, ncomp.trt)
+        }
+        if (length(keepX.trt) != ncomp.trt) {
+            stop(
+                "length of 'keepX.trt' must be equal to 'ncomp.trt' (",
+                ncomp.trt,
+                ")."
+            )
+        }
+        if (any(keepX.trt > p)) {
+            stop(
+                "each element of 'keepX.trt' must be <= number of predictors p = ",
+                p,
+                "."
+            )
         }
 
-        if(any(keepX.trt > p)){
-            stop("each component of 'keepX' must be lower than or equal to ",
-                p, ".")
-        }
 
         colnames(Y.trt.mat) <- levels(Y.trt)
         rownames(Y.trt.mat) <- names(Y.trt) <- rownames(X)
 
 
-        if(balance == FALSE){
+        if (balance == FALSE) {
             # weight
             group <- data.frame(trt = Y.trt, bat = Y.bat)
             weight.num <- table(Y.trt, Y.bat)
 
-            for(i in seq_len(nlevels(Y.trt))){
-                for(j in seq_len(nlevels(Y.bat))){
+            if (any(weight.num == 0)) {
+                stop(
+                    "Some trt-by-batch combinations have zero samples.
+            Weighted PLSDA-batch cannot handle structurally missing cells."
+                )
+            }
+
+
+            for (i in seq_len(nlevels(Y.trt))) {
+                for (j in seq_len(nlevels(Y.bat))) {
                     weight[group$trt == levels(Y.trt)[i] &
-                            group$bat == levels(Y.bat)[j]] <- weight.num[i,j]
+                        group$bat == levels(Y.bat)[j]] <- weight.num[i, j]
                 }
             }
 
-            weight <- 1/ weight
-            weight <- weight/min(weight) # make the min(weight) to be 1
+            weight <- 1 / weight
+            weight <- weight / min(weight) # make the min(weight) to be 1
             weight <- sqrt(weight)
 
-            X.wt <- weight*X
+            X.wt <- weight * X
             X.scale <- scale(X.wt, center = TRUE, scale = TRUE)
             X.mean <- attributes(X.scale)$`scaled:center`
             X.sd <- attributes(X.scale)$`scaled:scale`
 
-            Y.bat.wt <-  weight*Y.bat.mat
+            Y.bat.wt <- weight * Y.bat.mat
             Y.bat.scale <- scale(Y.bat.wt, center = TRUE, scale = TRUE)
 
-            Y.trt.wt <- weight*Y.trt.mat
+            Y.trt.wt <- weight * Y.trt.mat
             Y.trt.scale <- scale(Y.trt.wt, center = TRUE, scale = TRUE)
-        }else{
+        } else {
             X.scale <- scale(X, center = TRUE, scale = TRUE)
             X.mean <- attributes(X.scale)$`scaled:center`
             X.sd <- attributes(X.scale)$`scaled:scale`
@@ -274,11 +349,17 @@ PLSDA_batch <- function(X,
 
 
         #-- stage 1: fit the treatment effect first --#
-        plsda_trt <- PLSDA(X = X.scale, Y = Y.trt.scale, ncomp = ncomp.trt,
-        keepX = keepX.trt, tol = tol, max.iter = max.iter)
+        plsda_trt <- PLSDA(
+            X = X.scale,
+            Y = Y.trt.scale,
+            ncomp = ncomp.trt,
+            keepX = keepX.trt,
+            mode = mode,
+            tol = tol,
+            max.iter = max.iter
+        )
         X.notrt <- plsda_trt$defl_data$X
-
-    }else{
+    } else {
         X.scale <- scale(X, center = TRUE, scale = TRUE)
         X.mean <- attributes(X.scale)$`scaled:center`
         X.sd <- attributes(X.scale)$`scaled:scale`
@@ -290,53 +371,83 @@ PLSDA_batch <- function(X,
     }
 
     #-- stage 2: fit the batch effect then --#
-    plsda_bat <- PLSDA(X = X.notrt, Y = Y.bat.scale, ncomp = ncomp.bat,
-    keepX = keepX.bat, tol = tol, max.iter = max.iter)
+    plsda_bat <- PLSDA(
+        X = X.notrt,
+        Y = Y.bat.scale,
+        ncomp = ncomp.bat,
+        keepX = keepX.bat,
+        mode = mode,
+        tol = tol,
+        max.iter = max.iter
+    )
 
     bat_loadings <- plsda_bat$loadings$a
 
     #-- stage 3: deflation of batch from the original matrix --#
     X.temp <- X.scale
-    for(h in seq_len(ncomp.bat)){
-        a.bat <- bat_loadings[,h]
+    for (h in seq_len(ncomp.bat)) {
+        a.bat <- bat_loadings[, h]
         t.bat <- X.temp %*% a.bat
         X.temp <- deflate_mtx(X.temp, t.bat)
     }
 
     X.nobat <- X.temp
 
-    X.nobat.final <- t(t(X.nobat)*X.sd + X.mean)
-    X.nobat.final <- X.nobat.final/weight
+    X.nobat.final <- t(t(X.nobat) * X.sd + X.mean)
+    X.nobat.final <- X.nobat.final / weight
 
-    if(!is.null(Y.trt)){
-        X.notrt.final <- t(t(X.notrt)*X.sd + X.mean)
-        X.notrt.final <- X.notrt.final/weight
-    }else{
+    if (!is.null(Y.trt)) {
+        X.notrt.final <- t(t(X.notrt) * X.sd + X.mean)
+        X.notrt.final <- X.notrt.final / weight
+    } else {
         X.notrt.final <- NULL
     }
 
 
     cl <- match.call()
-    cl[[1]] <- as.name('PLSDA_batch')
+    cl[[1]] <- as.name("PLSDA_batch")
 
-    result <- list(call = cl,
-                X = X,
-                X.nobatch = X.nobat.final,
-                X.notrt = X.notrt.final,
-                Y = list(trt = Y.trt, bat= Y.bat),
-                latent_var.trt = plsda_trt$latent_comp,
-                latent_var.bat = plsda_bat$latent_comp,
-                loadings.trt = plsda_trt$loadings,
-                loadings.bat = plsda_bat$loadings,
-                tol = tol,
-                max.iter = max.iter,
-                iter.trt = plsda_trt$iters,
-                iter.bat = plsda_bat$iters,
-                explained_variance.trt = plsda_trt$exp_var,
-                explained_variance.bat = plsda_bat$exp_var,
-                weight = weight)
+    latent_var.trt <- if (!is.null(plsda_trt)) {
+        plsda_trt$latent_comp
+    } else {
+        NULL
+    }
+    loadings.trt <- if (!is.null(plsda_trt)) {
+        plsda_trt$loadings
+    } else {
+        NULL
+    }
+    iter.trt <- if (!is.null(plsda_trt)) {
+        plsda_trt$iters
+    } else {
+        NULL
+    }
+    expvar.trt <- if (!is.null(plsda_trt)) {
+        plsda_trt$exp_var
+    } else {
+        NULL
+    }
 
-    if(near.zero.var == TRUE){
+    result <- list(
+        call = cl,
+        X = X,
+        X.nobatch = X.nobat.final,
+        X.notrt = X.notrt.final,
+        Y = list(trt = Y.trt, bat = Y.bat),
+        latent_var.trt = latent_var.trt,
+        latent_var.bat = plsda_bat$latent_comp,
+        loadings.trt = loadings.trt,
+        loadings.bat = plsda_bat$loadings,
+        tol = tol,
+        max.iter = max.iter,
+        iter.trt = iter.trt,
+        iter.bat = plsda_bat$iters,
+        explained_variance.trt = expvar.trt,
+        explained_variance.bat = plsda_bat$exp_var,
+        weight = weight
+    )
+
+    if (near.zero.var) {
         result$nzv <- nzv
     }
 
@@ -346,43 +457,39 @@ PLSDA_batch <- function(X,
 
 #' Matrix Deflation
 #'
-#' This function removes the variance of given component \code{t} from the
-#' input matrix \code{X}. \deqn{\hat{X} = X - t (t^{\top}t)^{-1}t^{\top}X}
-#' It is a built-in function of \code{PLSDA_batch}.
+#' This function removes the variance of a given component \code{comp} from the
+#' input matrix \code{X}. \deqn{\hat{X} = X - comp (comp^{\top}comp)^{-1}comp^{\top}X}
+#' It is mainly used internally in \code{PLSDA_batch}.
 #'
-#' @importFrom Rdpack reprompt
 #'
 #' @param X A numeric matrix to be deflated. It assumes that samples are
-#' on the row, while variables are on the column. \code{NA}s are not allowed.
-#' @param t A component to be deflated out from the matrix.
+#' on the rows and variables are on the columns. \code{NA}s are not allowed.
+#' @param comp A numeric vector or single-column matrix representing the
+#'   component to be deflated out from the matrix.
 #'
 #' @return A deflated matrix with the same dimension as the input matrix.
 #'
-#' @author Yiwen Wang, Kim-Anh Lê Cao
+#' @author Yiwen Wang, Kim-Anh Le Cao
 #'
 #' @references
 #' \insertRef{barker2003partial}{PLSDAbatch}
 #'
 #' @keywords Internal
 #'
-#' @export
 #'
 #' @examples
-#' # A built-in function of PLSDA_batch, not separately used.
-#' # Not run
-#' data('AD_data')
-#' library(mixOmics)
-#' library(TreeSummarizedExperiment)
+#' NULL
 #'
-#' X <- assays(AD_data$EgData)$Clr_value
-#' ad_pca <- pca(X, ncomp = 3)
-#' # the matrix without the information of PC1:
-#' ad.def.mtx <- deflate_mtx(X, ad_pca$variates$X[ ,1])
-#'
-#'
-deflate_mtx <- function(X, t){
-    X.res <- X - t %*% (solve(crossprod(t))) %*% (t(t) %*% X)
-    return(invisible(X.res))
+deflate_mtx <- function(X, comp) {
+    X <- as.matrix(X)
+    comp <- as.matrix(comp)
+
+    if (nrow(X) != nrow(comp)) {
+        stop("Number of rows in 'X' and 'comp' must match.")
+    }
+
+    X.res <- X - comp %*% solve(crossprod(comp)) %*% (t(comp) %*% X)
+    invisible(X.res)
 }
 
 
@@ -393,7 +500,6 @@ deflate_mtx <- function(X, t){
 #' matrix \code{Y}. It is a built-in function of \code{PLSDA_batch}.
 #'
 #' @importFrom mixOmics explained_variance
-#' @importFrom Rdpack reprompt
 #'
 #' @param X A numeric matrix that is centered and scaled as an explanatory
 #' matrix. \code{NA}s are not allowed.
@@ -402,6 +508,8 @@ deflate_mtx <- function(X, t){
 #' @param keepX A numeric vector of length \code{ncomp}, the number of variables
 #' to keep in \eqn{X}-loadings. By default all variables are kept in the model.
 #' A valid input of \code{keepX} extends \code{PLSDA} to a sparse version.
+#' @param mode Character, either \code{"regression"} or \code{"canonical"}.
+#' Default mode is 'regression'.
 #' @param tol Numeric, convergence stopping value.
 #' @param max.iter Integer, the maximum number of iterations.
 #'
@@ -421,43 +529,66 @@ deflate_mtx <- function(X, t){
 #' method is not to maximise the variance, but the covariance between
 #' \code{X} and the dummy matrix \code{Y}).}
 #'
-#' @author Yiwen Wang, Kim-Anh Lê Cao
+#' @author Yiwen Wang, Kim-Anh Le Cao
 #'
 #' @references
 #' \insertRef{barker2003partial}{PLSDAbatch}
 #'
 #' @keywords Internal
 #'
-#' @export
 #'
 #' @examples
-#' # A built-in function of PLSDA_batch, not separately used.
-#' # Not run
-#' data('AD_data')
-#' library(mixOmics)
-#' library(TreeSummarizedExperiment)
+#' NULL
 #'
-#' X <- assays(AD_data$EgData)$Clr_value
-#' Y.trt <- rowData(AD_data$EgData)$Y.trt
-#' names(Y.trt) <- rownames(AD_data$EgData)
-#'
-#' X.scale <- scale(X, center = TRUE, scale = TRUE)
-#'
-#' # convert Y.trt to be a dummy matrix
-#' Y.trt.mat <- unmap(as.numeric(Y.trt))
-#' Y.trt.scale <- scale(Y.trt.mat, center = TRUE, scale = TRUE)
-#'
-#' ad_plsda.trt <- PLSDA(X.scale, Y.trt.scale, ncomp = 1)
-#' # the latent components associated with Y.trt:
-#' X.compnt <- ad_plsda.trt$latent_comp$t
-#'
-#'
-PLSDA <- function(X, Y, ncomp, keepX = rep(ncol(X), ncomp), tol = 1e-06,
-                max.iter = 500){
+PLSDA <- function(X,
+                  Y,
+                  ncomp = 2,
+                  keepX = NULL,
+                  mode = c("regression", "canonical"),
+                  tol = 1e-06,
+                  max.iter = 500) {
     # Y is dummy matrix
-    # input X, Y are scaled
+    # input X, Y are centered and scaled
     # don't consider NA value
 
+    mode <- match.arg(mode)
+
+    # Basic checks
+    if (!is.matrix(X)) {
+        X <- as.matrix(X)
+    }
+    if (!is.matrix(Y)) {
+        Y <- as.matrix(Y)
+    }
+
+    if (!is.numeric(X) || !is.numeric(Y)) {
+        stop("'X' and 'Y' must be numeric matrices.")
+    }
+    if (anyNA(X) || anyNA(Y)) {
+        stop("'X' and 'Y' must not contain NA values.")
+    }
+    if (nrow(X) != nrow(Y)) {
+        stop("Number of rows in 'X' and 'Y' must match.")
+    }
+
+    p <- ncol(X)
+
+    # Default keepX after p is known
+    if (is.null(keepX)) {
+        keepX <- rep(p, ncomp)
+    }
+    if (length(keepX) != ncomp) {
+        stop("length of 'keepX' must be equal to 'ncomp' (", ncomp, ").")
+    }
+    if (any(keepX > p)) {
+        stop(
+            "each element of 'keepX' must be <= number of predictors p = ",
+            p,
+            "."
+        )
+    }
+
+    # Allocate matrices
     mat.t <- matrix(nrow = nrow(X), ncol = ncomp)
     mat.u <- matrix(nrow = nrow(X), ncol = ncomp)
     mat.a <- matrix(nrow = ncol(X), ncol = ncomp)
@@ -466,8 +597,9 @@ PLSDA <- function(X, Y, ncomp, keepX = rep(ncol(X), ncomp), tol = 1e-06,
     c.iter <- NULL
     X.temp <- X
     Y.temp <- Y
-    for(h in seq_len(ncomp)){
-        nx <- ncol(X) - keepX[h]
+
+    for (h in seq_len(ncomp)) {
+        nx <- p - keepX[h]
 
         #-- Initialisation --#
         M <- crossprod(X.temp, Y.temp)
@@ -481,15 +613,16 @@ PLSDA <- function(X, Y, ncomp, keepX = rep(ncol(X), ncomp), tol = 1e-06,
         iter <- 1
 
         #-- Iteration --#
-        repeat{
-            a.new <- t(X.temp) %*%  u
+        repeat {
+            a.new <- t(X.temp) %*% u
 
-            if(nx != 0){
+            if (nx != 0) {
                 abs_a <- abs(a.new)
-                if(any(rank(abs_a, ties.method = "max") <= nx)){
-                    a.new <- ifelse(rank(abs_a, ties.method = "max") <= nx, 0,
-                            sign(a.new) * (abs_a - max(abs_a[rank(abs_a,
-                                                ties.method = "max") <= nx])))
+                if (any(rank(abs_a, ties.method = "max") <= nx)) {
+                    a.new <- ifelse(rank(abs_a, ties.method = "max") <= nx,
+                        0,
+                        sign(a.new) * (abs_a - max(abs_a[rank(abs_a, ties.method = "max") <= nx]))
+                    )
                 }
             }
 
@@ -503,11 +636,16 @@ PLSDA <- function(X, Y, ncomp, keepX = rep(ncol(X), ncomp), tol = 1e-06,
 
             u <- Y.temp %*% b.new
 
-            if(crossprod(a.new - a.old) < tol){break}
-            if(iter == max.iter){
-            warning("Maximum number of iterations reached for the component ",
-                    h, ".", call. = FALSE)
-            break
+            if (crossprod(a.new - a.old) < tol) {
+                break
+            }
+            if (iter == max.iter) {
+                warning("Maximum number of iterations reached for the component ",
+                    h,
+                    ".",
+                    call. = FALSE
+                )
+                break
             }
 
             a.old <- a.new
@@ -516,13 +654,19 @@ PLSDA <- function(X, Y, ncomp, keepX = rep(ncol(X), ncomp), tol = 1e-06,
         }
 
         #-- deflation --#
-        X.temp <- deflate_mtx(X.temp, t)
-        Y.temp <- deflate_mtx(Y.temp, u)
+        if (mode == "regression") {
+            X.temp <- deflate_mtx(X.temp, t)
+            Y.temp <- deflate_mtx(Y.temp, t)
+        } else {
+            # mode == 'canonical'
+            X.temp <- deflate_mtx(X.temp, t)
+            Y.temp <- deflate_mtx(Y.temp, u)
+        }
 
-        mat.t[,h] <- t
-        mat.u[,h] <- u
-        mat.a[,h] <- a.new
-        mat.b[,h] <- b.new
+        mat.t[, h] <- t
+        mat.u[, h] <- u
+        mat.a[, h] <- a.new
+        mat.b[, h] <- b.new
         c.iter[h] <- iter
     }
 
@@ -530,16 +674,20 @@ PLSDA <- function(X, Y, ncomp, keepX = rep(ncol(X), ncomp), tol = 1e-06,
     rownames(mat.a) <- colnames(X)
     rownames(mat.b) <- colnames(Y)
     colnames(mat.t) <- colnames(mat.u) <- colnames(mat.a) <- colnames(mat.b) <-
-        names(c.iter) <- paste('comp', seq_len(ncomp))
+        names(c.iter) <- paste("comp", seq_len(ncomp))
 
-    exp.var.X <- explained_variance(X, mat.t, ncomp = ncomp)
-    exp.var.Y <- explained_variance(Y, mat.u, ncomp = ncomp)
+    exp.var.X <- mixOmics::explained_variance(X, mat.t, ncomp = ncomp)
+    exp.var.Y <- mixOmics::explained_variance(Y, mat.u, ncomp = ncomp)
 
-    result <- list(original_data = list(X = X, Y = Y),
-                defl_data = list(X = X.temp, Y = Y.temp),
-                latent_comp = list(t = mat.t, u = mat.u),
-                loadings = list(a = mat.a, b = mat.b),
-                iters = c.iter,
-                exp_var = list(X = exp.var.X, Y = exp.var.Y))
+    result <- list(
+        original_data = list(X = X, Y = Y),
+        defl_data = list(X = X.temp, Y = Y.temp),
+        latent_comp = list(t = mat.t, u = mat.u),
+        loadings = list(a = mat.a, b = mat.b),
+        iters = c.iter,
+        exp_var = list(X = exp.var.X, Y = exp.var.Y),
+        mode = mode
+    )
+
     return(invisible(result))
 }

@@ -1,4 +1,1 @@
-library(testthat)
-library(PLSDAbatch)
-
-test_check("PLSDAbatch")
+testthat::test_check("PLSDAbatch")

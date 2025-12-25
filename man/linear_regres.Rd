@@ -5,104 +5,137 @@
 \title{Linear Regression}
 \usage{
 linear_regres(
-    data,
-    trt,
-    batch.fix = NULL,
-    batch.fix2 = NULL,
-    batch.random = NULL,
-    type = "linear model",
-    p.adjust.method = "fdr"
+  data,
+  trt,
+  batch.fix = NULL,
+  batch.fix2 = NULL,
+  batch.random = NULL,
+  type = "linear model",
+  p.adjust.method = "fdr",
+  criterion = "AIC",
+  return.model = TRUE
 )
 }
 \arguments{
-\item{data}{A data frame that contains the response variables for
-the linear regression. Samples as rows and variables as columns.}
+\item{data}{A data frame containing microbial variables. Rows correspond
+to samples and columns to features.}
 
-\item{trt}{A factor or a class vector for the treatment grouping information
-(categorical outcome variable).}
+\item{trt}{A factor or class vector representing the treatment groups.
+This argument is mandatory and is coerced to a factor internally. The
+p-values correspond to the global treatment effect extracted from
+\code{anova()}.}
 
-\item{batch.fix}{A factor or a class vector for the batch
-grouping information (categorical outcome variable), treated
-as a fixed effect in the model.}
+\item{batch.fix}{A factor or vector representing a batch effect treated
+as a fixed effect. Required when \code{type = "linear model"}.}
 
-\item{batch.fix2}{A factor or a class vector for a second batch
-grouping information (categorical outcome variable), treated as a
-fixed effect in the model.}
+\item{batch.fix2}{A second fixed batch effect. Can only be used when
+\code{batch.fix} is provided.}
 
-\item{batch.random}{A factor or a class vector for the batch
-grouping information (categorical outcome variable), treated as
-a random effect in the model.}
+\item{batch.random}{A factor or vector representing a batch effect treated
+as a random effect. Required when \code{type = "linear mixed model"}.}
 
-\item{type}{The type of model to be used for fitting, either 'linear model'
-or 'linear mixed model'.}
+\item{type}{Either \code{"linear model"} or \code{"linear mixed model"}.}
 
-\item{p.adjust.method}{The method to be used for p-value adjustment, either
-"holm", "hochberg", "hommel", "bonferroni", "BH", "BY", "fdr" or "none".}
+\item{p.adjust.method}{Method for p-value adjustment. One of:
+\code{"holm"}, \code{"hochberg"}, \code{"hommel"},
+\code{"bonferroni"}, \code{"BH"}, \code{"BY"}, \code{"fdr"},
+or \code{"none"}.}
+
+\item{criterion}{A character string indicating the model selection
+criterion used to choose between the treatment-only model and the
+treatment+batch model for each microbial variable. One of
+\code{"R2"}, \code{"RMSE"}, \code{"RSE"}, \code{"AIC"} or \code{"BIC"}.
+When \code{criterion = "R2"}:
+\itemize{
+  \item For \code{type = "linear model"}, the comparison is based on
+  the \strong{adjusted R2} of the two models (treatment-only versus
+  treatment+batch).
+  \item For \code{type = "linear mixed model"}, the comparison is based on
+  the \strong{conditional R2} of the mixed model versus the R2 of the
+  corresponding treatment-only linear model.
+}
+A larger R2 indicates a better model. For all other criteria
+(\code{"RMSE"}, \code{"RSE"}, \code{"AIC"}, \code{"BIC"}), smaller
+values indicate a better model.}
+
+\item{return.model}{Logical. If \code{TRUE}, fitted model objects
+(\code{lm} or \code{lmerMod}) are returned. If \code{FALSE}, model
+objects are replaced with \code{NULL} to save memory.}
 }
 \value{
-\code{linear_regres} returns a list that contains
-the following components:
-\item{type}{The type of model used for fitting.}
-\item{model}{Each object fitted.}
-\item{raw.p}{The p-values for each response variable.}
-\item{adj.p}{The adjusted p-values for each response variable.}
-\item{p.adjust.method}{The method used for p-value adjustment.}
-\item{R2}{The proportion of variation in the response variable that is
-explained by the predictor variables. A higher R2 indicates a better model.
-Results for 'linear model' only.}
-\item{adj.R2}{Adjusted R2 for many predictor variables in the model.
-Results for 'linear model' only.}
-\item{cond.R2}{The proportion of variation in the response variable that is
-explained by the "complete" model with all covariates. Results for
-'linear mixed model' only. Similar to \code{R2} in linear model.}
-\item{marg.R2}{The proportion of variation in the response variable that is
-explained by the fixed effects part only. Results for 'linear mixed
-model' only.}
-\item{RMSE}{The average error performed by the model in predicting the
-outcome for an observation. A lower RMSE indicates a better model.}
-\item{RSE}{also known as the model \eqn{sigma}, is a variant of the RMSE
-adjusted for the number of predictors in the model. A lower RSE indicates
-a better model.}
-\item{AIC}{A penalisation value for including additional predictor variables
-to a model. A lower AIC indicates a better model.}
-\item{BIC}{is a variant of AIC with a stronger penalty for including
-additional variables to the model.}
+A list containing:
+\item{type}{The type of model used ("linear model" or "linear mixed model").}
+\item{model}{A list of fitted \code{lm} or \code{lmerMod} objects, or
+\code{NULL} if \code{return.model = FALSE}.}
+\item{raw.p}{A vector of p-values corresponding to the selected model
+(based on \code{criterion}) for each microbial variable.}
+\item{adj.p}{Adjusted p-values.}
+\item{p.adjust.method}{The p-value adjustment method used.}
+\item{criterion}{The criterion used to select between the two models.}
+\item{best.model}{For each feature, either \code{"trt.only"} or
+\code{"trt.batch"}, indicating which model was selected.}
+
+\item{raw.R2}{For \code{type = "linear model"}, the R2 values for the
+treatment-only and treatment+batch models. For \code{type = "linear mixed model"},
+this field contains \code{NA}.}
+
+\item{adj.R2}{Adjusted R2 values (linear model only). For mixed models,
+this field contains \code{NA}.}
+
+\item{cond.R2}{Conditional R2 for mixed models: first column corresponds
+to the treatment-only linear model, second column to the mixed model
+including batch.random. For linear models, this field is \code{NA}.}
+
+\item{RMSE}{The root mean squared error for both models (two columns:
+\code{trt.only} and \code{trt.batch}).}
+\item{RSE}{Residual standard error for both models.}
+\item{AIC}{AIC values for both models.}
+\item{BIC}{BIC values for both models.}
 }
 \description{
-This function fits linear regression (linear model or linear mixed model) on
-each microbial variable and includes treatment and batch effects as
-covariates. It generates p-values, adjusted p-values for
-multiple comparisons, and evaluation metrics of model quality.
+This function fits linear regression models (either a linear model or a
+linear mixed model) to each microbial variable, including treatment and batch
+covariates as specified. For each variable, two models are fitted:
+(i) a model including only the treatment effect (\code{trt.only});
+(ii) a model including both treatment and batch effects (\code{trt.batch}).
+A selected criterion (e.g., AIC, BIC, RMSE, R2) is used to choose the
+better model for each variable, and only the p-value of the selected model
+is returned.
 }
 \note{
-\code{R2, adj.R2, cond.R2, marg.R2, RMSE, RSE, AIC, BIC} all include
-the results of two models: (i) the full input model; (ii) a model without
-batch effects. It can help to decide whether it is better to include
-batch effects.
+For each microbial variable, two models are always fitted:
+\enumerate{
+  \item{\code{trt.only}: \code{y ~ trt}}
+  \item{\code{trt.batch}: \code{y ~ trt + batch} (or with random effects)}
+}
+The selected model is determined solely by \code{criterion}. Only the
+p-value corresponding to the selected model is returned in \code{raw.p}.
 }
 \examples{
-library(TreeSummarizedExperiment) # for functions assays(),rowData()
-data('AD_data')
+if (requireNamespace("SummarizedExperiment", quietly = TRUE)) {
+    data("AD_data")
 
-# centered log ratio transformed data
-ad.clr <- assays(AD_data$EgData)$Clr_value
-ad.batch <- rowData(AD_data$EgData)$Y.bat # batch information
-ad.trt <- rowData(AD_data$EgData)$Y.trt # treatment information
-names(ad.batch) <- names(ad.trt) <- rownames(AD_data$EgData)
-ad.lm <- linear_regres(data = ad.clr, trt = ad.trt,
-                        batch.fix = ad.batch,
-                        type = 'linear model')
-ad.p.adj <- ad.lm$adj.p
-head(ad.lm$AIC)
-
+    # centered log ratio transformed data
+    ad.clr <- SummarizedExperiment::assays(AD_data$EgData)$Clr_value
+    ad.batch <- SummarizedExperiment::rowData(AD_data$EgData)$Y.bat # batch information
+    ad.trt <- SummarizedExperiment::rowData(AD_data$EgData)$Y.trt # treatment information
+    names(ad.batch) <- names(ad.trt) <- rownames(AD_data$EgData)
+    ad.lm <- linear_regres(
+        data = ad.clr, trt = ad.trt,
+        batch.fix = ad.batch,
+        type = "linear model",
+        criterion = "AIC"
+    )
+    ad.p.adj <- data.frame(best_model = ad.lm$best.model, adjust_p = ad.lm$adj.p)
+    head(ad.p.adj)
+    head(ad.lm$AIC)
+    table(ad.lm$best.model)
 }
-\references{
-\insertRef{daniel2020performance}{PLSDAbatch}
+
 }
 \seealso{
-\code{\link{percentile_norm}} and \code{\link{PLSDA_batch}} as
-the other methods for batch effect management.
+\code{\link{percentile_norm}}, \code{\link{PLSDA_batch}}
 }
 \author{
-Yiwen Wang, Kim-Anh Lê Cao
+Yiwen Wang, Kim-Anh Le Cao
 }

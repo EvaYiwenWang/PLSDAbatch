@@ -18,7 +18,7 @@ Bioconductor.
 
 ## Maintainer
 
-[Yiwen (Eva) Wang](mailto:wangyiwen@caas.cn)
+[Yiwen (Eva) Wang](mailto:yiwen.wang@unimelb.edu.au)
 
 ## Installation
 
@@ -42,7 +42,7 @@ by the output.
 BiocManager::valid()
 ```
 
-#### a) Latest `Bioconductor` Release (not now, wait for Bioconductor release)
+#### a) Latest `Bioconductor` Release
 
 You can install `PLSDAbatch` using the following code:
 
@@ -59,6 +59,16 @@ Install the GitHub version with:
 BiocManager::install("EvaYiwenWang/PLSDAbatch") 
 
 # with vignette
+## Install CRAN packages for vignette
+cran_pkgs <- c("pheatmap", "vegan")
+to_install <- cran_pkgs[!cran_pkgs %in% installed.packages()[, "Package"]]
+if (length(to_install) > 0) install.packages(to_install)
+
+## Install Bioconductor packages for vignette
+bioc_pkgs <- c("Biobase", "SummarizedExperiment")
+to_install <- bioc_pkgs[!bioc_pkgs %in% installed.packages()[, "Package"]]
+if (length(to_install) > 0) BiocManager::install(to_install)
+
 devtools::install_github("https://github.com/EvaYiwenWang/PLSDAbatch", build_vignettes = T)
 ```
 
@@ -103,3 +113,18 @@ mentioned simulations and analyses in the paper are separately stored
 #### September 2024
 
 - fixed bugs: the clash of functions from dependencies.
+
+#### December 2025
+
+- Added a `mode` argument to `PLSDA_batch()`.
+- Added a `criterion` argument to `linear_regres()` to select P-values
+  from the optimal model based on the specified criterion.
+- Added a `return.model` arugument to `linear_regres()` to reduce memory
+  usage when set to `FALSE`.
+- Extended `Scatter_Density()` to support any multivariate method that
+  returns component scores, including PCA and PLS, with corresponding
+  arguments updated.
+- Added `lighten()` and `darken()` functions for enhanced color
+  generation.
+- Refined multiple functions to improve usability.
+- Updated the vignette accordingly.

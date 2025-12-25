@@ -2,44 +2,52 @@
 % Please edit documentation in R/managing_batch_effects.R
 \name{percentile_norm}
 \alias{percentile_norm}
-\title{Percentile Normalisation}
+\title{Percentile normalisation}
 \usage{
-percentile_norm(data = data, batch = batch, trt = trt, ctrl.grp)
+percentile_norm(data, batch, trt, ctrl.grp)
 }
 \arguments{
-\item{data}{A data frame that contains the microbial variables and required
-to be corrected for batch effects. Samples as rows and variables as columns.}
+\item{data}{A data frame or matrix that contains the microbial variables
+to be corrected for batch effects. Samples are in rows and variables
+are in columns.}
 
-\item{batch}{A factor or a class vector for the batch grouping information
-(categorical outcome variable).}
+\item{batch}{A factor or vector for the batch grouping information
+(categorical outcome variable). Its length must match the number of rows
+in \code{data}.}
 
-\item{trt}{A factor or a class vector for the treatment grouping information
-(categorical outcome variable).}
+\item{trt}{A factor or vector for the treatment grouping information
+(categorical outcome variable). Its length must match the number of rows
+in \code{data}.}
 
-\item{ctrl.grp}{Character, the name of control samples (i.e. healthy).}
+\item{ctrl.grp}{Character, the label of control samples (i.e. healthy) in
+\code{trt}.}
 }
 \value{
-A data frame that corrected for batch effects.
+A data frame with batch effects corrected by percentile
+normalisation.
 }
 \description{
 This function corrects for batch effects in case-control microbiome studies.
 Briefly, the relative abundance of microbial variables (i.e. bacterial taxa)
-in case (i.e. disease) samples are converted to percentiles of the equivalent
-variables in control (i.e. healthy) samples within a batch prior to pooling
-data across batches. Pooled batches must have similar case and control
-cohort definitions.
+in case (i.e. disease) samples is converted to percentiles of the
+corresponding variables in control (i.e. healthy) samples within each batch,
+before pooling data across batches. Pooled batches must share comparable
+case and control cohort definitions.
 }
 \examples{
-library(TreeSummarizedExperiment) # for functions assays(),rowData()
-data('AD_data')
+if (requireNamespace("SummarizedExperiment", quietly = TRUE)) {
+    data("AD_data")
 
-# centered log ratio transformed data
-ad.clr <- assays(AD_data$EgData)$Clr_value
-ad.batch <- rowData(AD_data$EgData)$Y.bat # batch information
-ad.trt <- rowData(AD_data$EgData)$Y.trt # treatment information
-names(ad.batch) <- names(ad.trt) <- rownames(AD_data$EgData)
-ad.PN <- percentile_norm(data = ad.clr, batch = ad.batch,
-                            trt = ad.trt, ctrl.grp = '0-0.5')
+    # centered log ratio transformed data
+    ad.clr <- SummarizedExperiment::assays(AD_data$EgData)$Clr_value
+    ad.batch <- SummarizedExperiment::rowData(AD_data$EgData)$Y.bat # batch information
+    ad.trt <- SummarizedExperiment::rowData(AD_data$EgData)$Y.trt # treatment information
+    names(ad.batch) <- names(ad.trt) <- rownames(AD_data$EgData)
+    ad.PN <- percentile_norm(
+        data = ad.clr, batch = ad.batch,
+        trt = ad.trt, ctrl.grp = "0-0.5"
+    )
+}
 
 }
 \references{
@@ -47,8 +55,8 @@ ad.PN <- percentile_norm(data = ad.clr, batch = ad.batch,
 }
 \seealso{
 \code{\link{linear_regres}} and \code{\link{PLSDA_batch}} as
-the other methods for batch effect management.
+other methods for batch effect management.
 }
 \author{
-Yiwen Wang, Kim-Anh Lê Cao
+Yiwen Wang, Kim-Anh Le Cao
 }

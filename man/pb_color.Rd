@@ -2,24 +2,34 @@
 % Please edit documentation in R/pb_color.R
 \name{pb_color}
 \alias{pb_color}
-\title{Color Palette for PLSDA-batch}
+\title{Color Palette for PLSDAbatch Plots}
 \usage{
 pb_color(num.vector)
 }
 \arguments{
-\item{num.vector}{An integer vector specifying which color to use in
-the palette (there are only 25 colors available).}
+\item{num.vector}{An integer vector of indices specifying which colors
+to extract from the internal palette. Valid values are between
+\code{1} and \code{25}.}
 }
 \value{
-A vector of colors (25 colors max.)
+A character vector of hexadecimal color codes.
 }
 \description{
-The function outputs a vector of colors.
+This function returns a discrete color palette used in
+\pkg{PLSDAbatch} plots. The palette combines hues from
+\code{\link[mixOmics]{color.mixo}} and \code{\link[scales]{hue_pal}}
+and contains at most 25 distinct colors.
 }
 \examples{
 pb_color(seq_len(5))
+pb_color(c(1, 3, 5))
 
 }
+\seealso{
+\code{\link{lighten}}, \code{\link{darken}},
+\code{\link[mixOmics]{color.mixo}},
+\code{\link[scales]{hue_pal}}
+}
 \author{
-Yiwen Wang, Kim-Anh Lê Cao
+Yiwen Wang, Kim-Anh Le Cao
 }

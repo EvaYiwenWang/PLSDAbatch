@@ -7,40 +7,28 @@
 percentileofscore(df, control.index)
 }
 \arguments{
-\item{df}{A data frame that contains the microbial variables and required to
-be converted into percentile scores. Samples as rows and variables
-as columns.}
+\item{df}{A data frame or matrix that contains the microbial variables
+to be converted into percentile scores. Samples are in rows and variables
+are in columns.}
 
-\item{control.index}{A numeric vector that contains the indexes
-of control samples.}
+\item{control.index}{A numeric vector that contains the indices
+of control samples (row indices of \code{df}).}
 }
 \value{
-A data frame of percentile scores for each microbial variable
-and each sample.
+A data frame of percentile scores (between 0 and 1) for each
+microbial variable and each sample.
 }
 \description{
 This function converts the relative abundance of microbial variables
 (i.e. bacterial taxa) in case (i.e. disease) samples to percentiles of
-the equivalent variables in control (i.e. healthy) samples.
-It is a built-in function of \code{percentile_norm}.
+the corresponding variables in control (i.e. healthy) samples.
+It is a built-in function of \code{percentile_norm()}.
 }
 \examples{
-# A built-in function of percentile_norm, not separately used.
-# Not run
-library(TreeSummarizedExperiment)
-data('AD_data')
-
-ad.clr <- assays(AD_data$EgData)$Clr_value
-ad.batch <- rowData(AD_data$EgData)$Y.bat
-ad.trt <- rowData(AD_data$EgData)$Y.trt
-names(ad.batch) <- names(ad.trt) <- rownames(AD_data$EgData)
-trt.first.b <- ad.trt[ad.batch == '09/04/2015']
-ad.first.b.pn <- percentileofscore(ad.clr[ad.batch == '09/04/2015', ],
-                                    which(trt.first.b == '0-0.5'))
-
+NULL
 
 }
 \references{
 \insertRef{gibbons2018correcting}{PLSDAbatch}
 }
-\keyword{Internal}
+\keyword{internal}

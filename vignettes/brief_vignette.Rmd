@@ -2,9 +2,10 @@
 title: 'PLSDA-batch Vignette'
 author: 
 - name: 'Yiwen (Eva) Wang'
-  affiliation: 'Agricultural Genomics Institute at Shenzhen, 
-  Chinese Academy of Agricultural Sciences, Shenzhen, China'
-  email: 'wangyiwen@caas.cn'
+  affiliation: 'Melbourne Integrative Genomics, 
+  School of Mathematics and Statistics, 
+  The University of Melbourne, Australia'
+  email: 'yiwen.wang@unimelb.edu.au'
 date: '`r format(Sys.time(), "%d %B, %Y")`'
 package: PLSDAbatch
 
@@ -14,53 +15,44 @@ output:
         toc_depth: 2
 
 vignette: >
-    %\VignetteIndexEntry{PLSDA-batch Vignette}
-    %\VignetteEngine{knitr::rmarkdown}
-    %\VignetteEncoding{UTF-8}
-
+  %\VignetteIndexEntry{PLSDA-batch Vignette}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+    
 bibliography: [reference.bib]
 biblio-style: apalike
 link-citations: true
 
 ---
 ```{r setup, include = FALSE}
-knitr::opts_chunk$set(dpi = 70, echo = TRUE, warning = FALSE, message = FALSE, 
-                    eval = TRUE, fig.show = TRUE, fig.width = 6, 
-                    fig.height = 4, fig.align ='center', 
-                    out.width = '60%', cache = FALSE)
+knitr::opts_chunk$set(
+    dpi = 70, echo = TRUE, warning = FALSE, message = FALSE,
+    eval = TRUE, fig.show = TRUE, fig.width = 6,
+    fig.height = 4, fig.align = "center",
+    out.width = "60%", cache = FALSE
+)
 ```
 
 # Brief Introduction
 
-**PLSDA-batch** is a new batch effect correction method based on Projection 
-to Latent Structures Discriminant Analysis to correct data prior to any 
-downstream analysis. It estimates latent components related to treatment and 
-batch effects to remove batch variation. PLSDA-batch is highly suitable for 
-microbiome data as it is non-parametric, multivariate and allows for ordination 
-and data visualisation. Combined with centered log ratio transformation for 
-addressing uneven library sizes and compositional structure, PLSDA-batch 
-addresses all characteristics of microbiome data that existing correction 
-methods have ignored so far. 
+**PLSDA-batch** is a batch-effect correction method based on Projection to Latent Structures Discriminant Analysis. It estimates latent components associated with treatment and batch effects and removes the batch-related variation prior to any downstream analysis. It also enables ordination and data visualisation. PLSDA-batch is particularly suitable for microbiome data because it is non-parametric and multivariate. When combined with the centered log-ratio transformation to address uneven library sizes and compositionality, PLSDA-batch directly tackles key characteristics of microbiome data that existing correction methods often overlook.
 
-Apart from the main method, the R package also includes two variants called 
-1/ *weighted PLSDA-batch* for unbalanced batch x treatment designs that are 
-commonly encountered in studies with small sample size, and 
-2/ *sparse PLSDA-batch* for selection of discriminative variables to avoid 
-overfitting in classification problems. These two variants have widened the 
-scope of applicability of PLSDA-batch to different data 
-settings [@wang2020multivariate]. 
+In addition to the main method, the R package includes two extensions: 
 
-This vignette includes microbiome data pre-processing, batch effect detection 
-and visualisation, the usage of PLSDA-batch series methods, assessment of 
-batch effect removal and variable selection after batch effect correction. See 
-"[Batch Effects Management in Case Studies](https://evayiwenwang.github.io/PLSDAbatch_workflow/articles/case_studies.html)" 
-for different choices of methods for batch effect management according to 
-experimental purposes and designs. 
+1/ *weighted PLSDA-batch* designed for unbalanced batch-by-treatment designs commonly encountered in small-sample microbiome studies; 
+
+2/ *sparse PLSDA-batch* which performs discriminative variable selection to reduce overfitting in classification settings.
+
+These two variants broaden the applicability of PLSDA-batch across diverse data scenarios [@wang2020multivariate]. 
+
+This vignette covers microbiome data pre-processing, batch-effect detection and visualisation, the use of the PLSDA-batch family of methods, and post-correction evaluation and variable selection. For guidance on method choice according to experimental objectives and study designs, see 
+"[Batch Effects Management in Case Studies](https://evayiwenwang.github.io/PLSDAbatch_workflow/articles/case_studies.html)".
+
+*Note*: A new argument `mode` has been added to `PLSDA_batch()`. We recommend using "regression" mode, but if you need to reproduce results obtained using PLSDAbatch ≤ 1.6.0, please explicitly set `mode = "canonical"`.
 
 # Packages installation and loading
 
-First, we load the packages necessary for analysis, and check the version of 
-each package.
+First, we load the packages required for the analysis and check their versions.
 
 ```{r}
 # CRAN
@@ -71,29 +63,29 @@ library(gridExtra)
 # Bioconductor
 library(mixOmics)
 library(Biobase)
-library(TreeSummarizedExperiment)
+library(SummarizedExperiment)
 library(PLSDAbatch)
 
 # print package versions
-package.version('pheatmap')
-package.version('vegan')
-package.version('gridExtra')
-package.version('mixOmics')
-package.version('Biobase')
-package.version('PLSDAbatch')
+package.version("pheatmap")
+package.version("vegan")
+package.version("gridExtra")
+package.version("mixOmics")
+package.version("Biobase")
+package.version("PLSDAbatch")
 ```
 
 # Case study description 
 
-We considered a case study to illustrate the application of PLSDA-batch. This 
+We considered a case study to illustrate the application of PLSDA-batch. The 
 study is described as follows:
 
-$\color{blue}{\bf{\text{Anaerobic digestion.}}}$ This study explored the 
-microbial indicators that could improve the efficacy of anaerobic digestion 
-(AD) bioprocess and prevent its failure [@chapleur2016increasing]. This data 
-include 75 samples and 567 microbial variables. The samples were treated with 
+$\color{blue}{\bf{\text{Anaerobic digestion.}}}$ This study investigated
+microbial indicators that could enhance the efficacy of anaerobic digestion 
+(AD) bioprocesses and prevent system failure [@chapleur2016increasing]. The dataset 
+includes 75 samples and 567 microbial variables. Samples were treated with 
 two different ranges of phenol concentration  (effect of interest) and 
-processed at five different dates (batch effect). This study includes a clear 
+processed on five different dates (batch effect). This study exhibits a clear 
 and strong batch effect with an approx. balanced batch x treatment design. 
 
 
@@ -101,25 +93,25 @@ and strong batch effect with an approx. balanced batch x treatment design.
 
 ## Pre-filtering 
 
-We load the $\color{blue}{\text{AD data}}$ stored internally with function 
-`data()`, and then extract the batch and treatment information out. 
+We load the $\color{blue}{\text{AD data}}$ stored internally using the `data()` function, and then extract the batch and treatment information. 
 
 
 ```{r}
 # AD data
-data('AD_data') 
+data("AD_data")
 ad.count <- assays(AD_data$FullData)$Count
 dim(ad.count)
 
 ad.metadata <- rowData(AD_data$FullData)
-ad.batch = factor(ad.metadata$sequencing_run_date, 
-                levels = unique(ad.metadata$sequencing_run_date))
-ad.trt = as.factor(ad.metadata$initial_phenol_concentration.regroup)
+ad.batch <- factor(ad.metadata$sequencing_run_date,
+    levels = unique(ad.metadata$sequencing_run_date)
+)
+ad.trt <- as.factor(ad.metadata$initial_phenol_concentration.regroup)
 names(ad.batch) <- names(ad.trt) <- rownames(ad.metadata)
 ```
 
 The raw $\color{blue}{\text{AD data}}$ include 567 OTUs and 75 samples. 
-We then use the function `PreFL()` from our $\color{orange}{\text{PLSDAbatch}}$ 
+We then use the `PreFL()` function from our $\color{orange}{\text{PLSDAbatch}}$ 
 R package to filter the data.
 
 
@@ -129,286 +121,315 @@ ad.filter <- ad.filter.res$data.filter
 dim(ad.filter)
 
 # zero proportion before filtering
-ad.filter.res$zero.prob
+ad.filter.res$zero.prob.before
 # zero proportion after filtering
-sum(ad.filter == 0)/(nrow(ad.filter) * ncol(ad.filter))
+ad.filter.res$zero.prob.after
 ```
 
 After filtering, 231 OTUs remained, and the proportion of zeroes decreased 
 from 63% to 38%.
 
-Note: The `PreFL()` function is only dedicated to raw counts, rather than 
-relative abundance data.  We also recommend to start the pre-filtering on raw 
-counts, rather than relative abundance data to mitigate the compositionality 
-issue.  
+Note: The `PreFL()` function is intended for raw count data rather than 
+relative abundance data.  We also recommend performing pre-filtering on raw 
+counts to better mitigate compositionality issues.  
 
 
 ## Transformation 
 
-Prior to CLR transformation, we recommend adding 1 as the offset for the data 
-(e.g., $\color{blue}{\text{AD data}}$) that are raw count data, and 0.01 as 
-the offset for the data that are relative abundance data. We use 
-`logratio.transfo()` function in $\color{orange}{\text{mixOmics}}$ package to 
-CLR transform the data.
+Prior to CLR transformation, we recommend adding 1 as an offset for raw count data 
+(e.g., $\color{blue}{\text{AD data}}$), and half of the minimum value as 
+an offset for relative abundance data. We use the
+`logratio.transfo()` function from the $\color{orange}{\text{mixOmics}}$ package to 
+apply the CLR transformation.
 
 ```{r}
-ad.clr <- logratio.transfo(X = ad.filter, logratio = 'CLR', offset = 1) 
-class(ad.clr) = 'matrix'
+ad.clr <- logratio.transfo(X = ad.filter, logratio = "CLR", offset = 1)
+class(ad.clr) <- "matrix"
 ```
 
 # Batch effect detection
 
 ## PCA
 
-We apply `pca()` function from $\color{orange}{\text{mixOmics}}$ package to 
-the $\color{blue}{\text{AD data}}$ and `Scatter_Density()` function from 
-$\color{orange}{\text{PLSDAbatch}}$ to represent the PCA sample plot with 
-densities.
+We apply the `pca()` function from the $\color{orange}{\text{mixOmics}}$ package to 
+the $\color{blue}{\text{AD data}}$ and use the `Scatter_Density()` function from 
+$\color{orange}{\text{PLSDAbatch}}$ to display the PCA sample plot with 
+density overlays.
 
 
-```{r ADpcaBefore, out.width = '80%', fig.align = 'center', fig.cap = 'The PCA sample plot with densities in the AD data.'}
+```{r ADpcaBefore, out.width = '80%', fig.align = 'center', fig.cap = 'PCA sample plot with density overlays for the AD data.'}
 # AD data
-ad.pca.before <- pca(ad.clr, ncomp = 3, scale = TRUE)
+ad.pca.before <- mixOmics::pca(ad.clr, ncomp = 3, scale = TRUE)
 
-Scatter_Density(object = ad.pca.before, batch = ad.batch, trt = ad.trt, 
-                title = 'AD data', trt.legend.title = 'Phenol conc.')
+Scatter_Density(
+    components = ad.pca.before$variates$X, comp = c(1, 2),
+    expl.var = ad.pca.before$prop_expl_var$X,
+    batch = ad.batch, trt = ad.trt,
+    title = "AD data", trt.legend.title = "Phenol conc."
+)
 ```
 
-In the above figure, we observed 1) the distinction between samples treated 
-with different phenol concentrations and 2) the differences between samples 
-sequenced at "14/04/2016", "21/09/2017" and the other dates. Therefore, the 
-batch effect related to dates needs to be removed.
+In the figure above, we observed (1) clear separation between samples treated with different phenol concentrations and (2) noticeable differences between samples sequenced on "14/04/2016" and "21/09/2017" compared with the other dates. Therefore, the date-related batch effect needs to be removed.
 
 
 ## Boxplots and density plots
 
-We first identify the top OTU driving the major variance in PCA using 
-`selectVar()` in $\color{orange}{\text{mixOmics}}$ package. Each identified 
-OTU can then be plotted as boxplots and density plots using `box_plot()` and 
-`density_plot()` in $\color{orange}{\text{PLSDAbatch}}$.
+We first identify the top OTUs driving the major variance in the PCA using the
+`selectVar()` function from the $\color{orange}{\text{mixOmics}}$ package. Each selected OTU can then be visualised using boxplots and density plots with the `box_plot()` and `density_plot()` functions in $\color{orange}{\text{PLSDAbatch}}$.
 
 
-```{r ADboxBefore, out.width = '80%', fig.align = 'center', fig.cap = 'Boxplots of sample values in "OTU28" before batch effect correction in the AD data.'}
+```{r ADboxBefore, out.width = '80%', fig.align = 'center', fig.cap = 'Boxplots of sample values for "OTU28" before batch-effect correction in the AD data.'}
 ad.OTU.name <- selectVar(ad.pca.before, comp = 1)$name[1]
-ad.OTU_batch <- data.frame(value = ad.clr[,ad.OTU.name], batch = ad.batch)
-box_plot(df = ad.OTU_batch, title = paste(ad.OTU.name, '(AD data)'), 
-        x.angle = 30)
+ad.OTU_batch <- data.frame(value = ad.clr[, ad.OTU.name], batch = ad.batch)
+box_plot(
+    df = ad.OTU_batch, title = paste(ad.OTU.name, "(AD data)"),
+    x.angle = 30
+)
 ```
 
-```{r ADdensityBefore, out.width = '80%', fig.align = 'center', fig.cap = 'Density plots of sample values in "OTU28" before batch effect correction in the AD data.'}
-density_plot(df = ad.OTU_batch, title = paste(ad.OTU.name, '(AD data)'))
+```{r ADdensityBefore, out.width = '80%', fig.align = 'center', fig.cap = 'Density plots of sample values for "OTU28" before batch-effect correction in the AD data.'}
+density_plot(df = ad.OTU_batch, title = paste(ad.OTU.name, "(AD data)"))
 ```
 
-The boxplot and density plot indicated a strong date batch effect because of 
-the differences between "14/04/2016", "21/09/2017" and the other dates in the 
-"OTU28".
+The boxplot and density plot indicate a strong date-related batch effect, driven by the differences between "14/04/2016", "21/09/2017", and the other dates for "OTU28".
 
-We also apply a linear regression model to the "OTU28" using `linear_regres()` 
-from $\color{orange}{\text{PLSDAbatch}}$ with batch and treatment effects as 
-covariates. We set "14/04/2016" and "21/09/2017" as the reference batch 
-respectively with `relevel()` from $\color{orange}{\text{stats}}$.
+We also apply a linear regression model to "OTU28" using the `linear_regres()` function from $\color{orange}{\text{PLSDAbatch}}$, including batch and treatment effects as covariates. We set "14/04/2016" and "21/09/2017" as the reference batches, 
+respectively, using the `relevel()` function from $\color{orange}{\text{stats}}$.
 
 
 ```{r}
 # reference batch: 14/04/2016
-ad.batch <- relevel(x = ad.batch, ref = '14/04/2016')
+ad.batch <- relevel(x = ad.batch, ref = "14/04/2016")
 
-ad.OTU.lm <- linear_regres(data = ad.clr[,ad.OTU.name], 
-                            trt = ad.trt, batch.fix = ad.batch, 
-                            type = 'linear model')
+ad.OTU.lm <- linear_regres(
+    data = ad.clr[, ad.OTU.name],
+    trt = ad.trt, batch.fix = ad.batch,
+    type = "linear model"
+)
 summary(ad.OTU.lm$model$data)
 
 # reference batch: 21/09/2017
-ad.batch <- relevel(x = ad.batch, ref = '21/09/2017')
+ad.batch <- relevel(x = ad.batch, ref = "21/09/2017")
 
-ad.OTU.lm <- linear_regres(data = ad.clr[,ad.OTU.name], 
-                            trt = ad.trt, batch.fix = ad.batch, 
-                            type = 'linear model')
+ad.OTU.lm <- linear_regres(
+    data = ad.clr[, ad.OTU.name],
+    trt = ad.trt, batch.fix = ad.batch,
+    type = "linear model"
+)
 summary(ad.OTU.lm$model$data)
 ```
 
-From the results of linear regression, we observed P < 0.001 for the regression 
-coefficients associated with all the other batches when the reference batch 
-was "14/04/2016", which confirmed the difference between the samples from batch 
-"14/04/2016" and the other samples as observed from previous plots. When the 
-reference batch was "21/09/2017", we also observed significant differences 
-between batch "21/09/2017" and "14/04/2016", between "21/09/2017" and 
-"01/07/2016". Therefore, the batch effect because of "21/09/2017" also exists.
+From the linear regression results, we observed P < 0.001 for the regression coefficients associated with all other batches when the reference batch was "14/04/2016", confirming the differences between samples from "14/04/2016" and those from the other dates, as seen in the previous plots. When the reference batch was "21/09/2017", we also observed significant differences between "21/09/2017" and "14/04/2016", as well as between "21/09/2017" and "01/07/2016". Therefore, a batch effect associated with "21/09/2017" is also present.
 
 
 ## Heatmap
 
-We produce a heatmap using $\color{orange}{\text{pheatmap}}$ package. The data 
-first need to be scaled on both OTUs and samples.
+We produce a heatmap using the $\color{orange}{\text{pheatmap}}$ package. The data 
+first need to be scaled across both OTUs and samples.
 
 
-```{r ADheatmap, out.width = '90%', fig.align = 'center', fig.cap = 'Hierarchical clustering for samples in the AD data.'}
+```{r ADheatmap, out.width = '90%', fig.align = 'center', fig.cap = 'Hierarchical clustering of samples in the AD data.'}
 # scale the clr data on both OTUs and samples
 ad.clr.s <- scale(ad.clr, center = TRUE, scale = TRUE)
 ad.clr.ss <- scale(t(ad.clr.s), center = TRUE, scale = TRUE)
 
 ad.anno_col <- data.frame(Batch = ad.batch, Treatment = ad.trt)
-ad.anno_colors <- list(Batch = color.mixo(seq_len(5)), 
-                        Treatment = pb_color(seq_len(2)))
-names(ad.anno_colors$Batch) = levels(ad.batch)
-names(ad.anno_colors$Treatment) = levels(ad.trt)
+ad.anno_colors <- list(
+    Batch = color.mixo(seq_len(5)),
+    Treatment = pb_color(seq_len(2))
+)
+names(ad.anno_colors$Batch) <- levels(ad.batch)
+names(ad.anno_colors$Treatment) <- levels(ad.trt)
 
-pheatmap(ad.clr.ss, 
-        cluster_rows = FALSE, 
-        fontsize_row = 4, 
-        fontsize_col = 6,
-        fontsize = 8,
-        clustering_distance_rows = 'euclidean',
-        clustering_method = 'ward.D',
-        treeheight_row = 30,
-        annotation_col = ad.anno_col,
-        annotation_colors = ad.anno_colors,
-        border_color = 'NA',
-        main = 'AD data - Scaled')
-
+pheatmap(ad.clr.ss,
+    cluster_rows = FALSE,
+    fontsize_row = 4,
+    fontsize_col = 6,
+    fontsize = 8,
+    clustering_distance_rows = "euclidean",
+    clustering_method = "ward.D",
+    treeheight_row = 30,
+    annotation_col = ad.anno_col,
+    annotation_colors = ad.anno_colors,
+    border_color = "NA",
+    main = "AD data - Scaled"
+)
 ```
 
-In the heatmap, samples in the $\color{blue}{\text{AD data}}$ from batch dated 
-"14/04/2016" were clustered and distinct from other samples, indicating a batch 
-effect.
+In the heatmap, samples in the $\color{blue}{\text{AD data}}$ from the batch dated 
+"14/04/2016" were clustered together and were distinct from the other samples, indicating the presence of a batch effect.
 
 
 ## pRDA
 
-We apply pRDA with `varpart()` function from $\color{orange}{\text{vegan}}$ 
+We apply pRDA using the `varpart()` function from the $\color{orange}{\text{vegan}}$ 
 R package.
 
 ```{r}
 # AD data
 ad.factors.df <- data.frame(trt = ad.trt, batch = ad.batch)
-class(ad.clr) <- 'matrix'
-ad.rda.before <- varpart(ad.clr, ~ trt, ~ batch, 
-                        data = ad.factors.df, scale = TRUE)
+class(ad.clr) <- "matrix"
+ad.rda.before <- varpart(ad.clr, ~trt, ~batch,
+    data = ad.factors.df, scale = TRUE
+)
 ad.rda.before$part$indfract
 ```
 
-In the result, `X1` and `X2` represent the first and second covariates fitted 
-in the model. `[a]`, `[b]` represent the independent proportion of variance 
-explained by `X1` and `X2` respectively, and `[c]` represents the intersection 
-variance shared between `X1` and `X2`. In the $\color{blue}{\text{AD data}}$, 
+In the results, `X1` and `X2` represent the first and second covariates fitted 
+in the model. `[a]` and `[b]` represent the independent proportions of variance 
+explained by `X1` and `X2` respectively, and `[c]` represents the shared 
+variance between `X1` and `X2`. In the $\color{blue}{\text{AD data}}$, 
 batch variance (`X2`) was larger than treatment variance (`X1`) with some 
-interaction proportion (indicated in line `[c]`, Adj.R.squared = 0.013). The 
-greater the intersection variance, the more unbalanced batch x treatment design 
-is. In this study, we considered the design as approx. balanced.
+interaction variance (shown in line `[c]`, Adj.R.squared = 0.013). A 
+larger shared variance indicates a more unbalanced batch x treatment design 
+is. In this study, we considered the design to be approx. balanced.
 
 
 # Batch effect correction 
 
 ## PLSDA-batch 
 
-The `PLSDA_batch()` function is implemented in 
+The `PLSDA_batch()` function is implemented in the
 $\color{orange}{\text{PLSDAbatch}}$ package. To use this function, we need to 
-specify the optimal number of components related to treatment (`ncomp.trt`) or 
+specify the optimal number of components related to the treatment (`ncomp.trt`) and 
 batch effects (`ncomp.bat`).
 
-Here in the $\color{blue}{\text{AD data}}$, we use `plsda()` from 
-$\color{orange}{\text{mixOmics}}$ with only treatment grouping information to 
-estimate the optimal number of treatment components to preserve.
+For versions > 1.6.0, we introduced the `mode` argument. The default is "regression", which is also the recommended mode. In our applications, both `Y.trt` and `Y.batch` are categorical, and our goal is to understand how `X` explains and predicts `Y`: specifically, to remove the information in `X` that explains `Y.batch` while preserving the information in `X` that explains `Y.trt`.
 
+### Regression mode
+
+In the $\color{blue}{\text{AD data}}$, `ad.trt` has 2 classes and `ad.batch` has 5 batches, so we choose 1 component for the treatment effect and 4 components for the batch effect. 
+
+In PLS-based methods, a categorical `Y` variable is converted into a 0/1 dummy matrix, A `Y` variable with $k$ classes becomes a matrix with $k$ columns, but only $k-1$ of these are informative because the final column can always be derived from the others. Mathmetically, the rank of `Y` is $k-1$.
+
+```{r}
+# the optimal number of treatment components
+nlevels(ad.trt) - 1
+
+# the optimal number of batch components
+nlevels(ad.batch) - 1
+
+ad.PLSDA_batch.res.reg <- PLSDA_batch(
+    X = ad.clr,
+    Y.trt = ad.trt, Y.bat = ad.batch,
+    ncomp.trt = 1, ncomp.bat = 4,
+    mode = "regression"
+)
+ad.PLSDA_batch.reg <- ad.PLSDA_batch.res.reg$X.nobatch
+```
+
+
+### Canonical mode
+
+The canonical mode is not recommended for batch-effect removal, as it measures how `X` and `Y` co-vary rather then how `X` explains `Y`. For PLSDAbatch <= 1.6.0, the canonical mode was used by default. Therefore, if you need to reproduce results obtained with versions ≤ 1.6.0, please explicitly set `mode = "canonical"`. Do not worry, the results from the two modes are generally similar, but biologically the "regression" mode is more appropriate. 
+
+The procedure for choosing the optimal number of components is the same in both modes. In canonical mode, however, we can directly visualise that a $k$-class `Y` variable requires only $k − 1$ informative components, reflecting the effective rank of its dummy-coded representation.
+
+We first convert `ad.trt` into a dummy matrix using the `unmap()` function from 
+$\color{orange}{\text{mixOmics}}$, and then use `pls()` in "canonical" mode from the same package to calculate the explained variance of `Y`.
 
 ```{r}
 # estimate the number of treatment components
-ad.trt.tune <- plsda(X = ad.clr, Y = ad.trt, ncomp = 5)
-ad.trt.tune$prop_expl_var #1
+ad.trt.mat <- unmap(ad.trt)
+ad.trt.tune.cnc <- pls(
+    X = ad.clr, Y = ad.trt.mat,
+    ncomp = 2, mode = "canonical"
+)
+ad.trt.tune.cnc$prop_expl_var$Y # 1
 ```
 
-We choose the number that explains 100% variance in the outcome matrix `Y`, 
-thus from the result, 1 component was enough to preserve the treatment 
-information.
+In the results, 1 component was sufficient to explain 100% of the variance in the outcome dummy matrix `ad.trt.mat`, as `ad.trt` contains only 2 classes.
 
-We then use `PLSDA_batch()` function with both treatment and batch grouping 
-information to estimate the optimal number of batch components to remove.
+We then use the `PLSDA_batch()` function, with both treatment and batch grouping 
+information, to visualise the optimal number of batch components to remove.
 
 ```{r}
 # estimate the number of batch components
-ad.batch.tune <- PLSDA_batch(X = ad.clr, 
-                            Y.trt = ad.trt, Y.bat = ad.batch,
-                            ncomp.trt = 1, ncomp.bat = 10)
-ad.batch.tune$explained_variance.bat #4
-sum(ad.batch.tune$explained_variance.bat$Y[seq_len(4)])
-
+ad.batch.tune.cnc <- PLSDA_batch(
+    X = ad.clr,
+    Y.trt = ad.trt, Y.bat = ad.batch,
+    ncomp.trt = 1, ncomp.bat = 6,
+    mode = "canonical"
+)
+ad.batch.tune.cnc$explained_variance.bat$Y # 4
+sum(ad.batch.tune.cnc$explained_variance.bat$Y[seq_len(4)])
 ```
 
-Using the same criterion as choosing treatment components, we choose the number 
-of batch components that explains 100% variance in the outcome matrix of batch. 
-According to the result, 4 components were required to remove batch effects.
+For the batch effect, 4 components were able to explain 100% of the variance in the batch dummy matrix, as `ad.batch` contains 5 groups.
 
-We then can correct for batch effects applying `PLSDA_batch()` with treatment, 
-batch grouping information and corresponding optimal number of related 
-components.
-
+For convenience, the optimal number of components can simply be chosen as `nlevels(y)-1`.
 
 ```{r}
-ad.PLSDA_batch.res <- PLSDA_batch(X = ad.clr, 
-                                Y.trt = ad.trt, Y.bat = ad.batch,
-                                ncomp.trt = 1, ncomp.bat = 4)
-ad.PLSDA_batch <- ad.PLSDA_batch.res$X.nobatch
-```
+# the optimal number of treatment components
+nlevels(ad.trt) - 1
 
+# the optimal number of batch components
+nlevels(ad.batch) - 1
+
+ad.PLSDA_batch.res.cnc <- PLSDA_batch(
+    X = ad.clr,
+    Y.trt = ad.trt, Y.bat = ad.batch,
+    ncomp.trt = 1, ncomp.bat = 4,
+    mode = "canonical"
+)
+ad.PLSDA_batch.cnc <- ad.PLSDA_batch.res.cnc$X.nobatch
+```
 
 ## sPLSDA-batch 
 
-We apply sPLSDA-batch using the same function `PLSDA_batch()`, but we specify 
+We apply sPLSDA-batch using the same `PLSDA_batch()` function, but we specify 
 the number of variables to select on each component (usually only 
-treatment-related components `keepX.trt`). To determine the optimal number of 
-variables to select, we use `tune.splsda()` function from 
-$\color{orange}{\text{mixOmics}}$ package [@rohart2017mixomics] with all 
-possible numbers of variables to select for each component (`test.keepX`).
-
+treatment-related components, `keepX.trt`). To determine the optimal number of 
+variables to select, we use the `tune.splsda()` function from the 
+$\color{orange}{\text{mixOmics}}$ package [@rohart2017mixomics], testing all candidate values provided in `test.keepX` for each component.
 
 ```{r, eval = F}
 # estimate the number of variables to select per treatment component
-set.seed(777)
-ad.test.keepX = c(seq(1, 10, 1), seq(20, 100, 10), 
-                seq(150, 231, 50), 231)
-ad.trt.tune.v <- tune.splsda(X = ad.clr, Y = ad.trt, 
-                            ncomp = 1, test.keepX = ad.test.keepX, 
-                            validation = 'Mfold', folds = 4, 
-                            nrepeat = 50)
-ad.trt.tune.v$choice.keepX #100
-
+ad.test.keepX <- c(
+    seq(1, 10, 1), seq(20, 100, 10),
+    seq(150, 231, 50), 231
+)
+ad.trt.tune.v <- tune.splsda(
+    X = ad.clr, Y = ad.trt,
+    ncomp = 1, test.keepX = ad.test.keepX,
+    folds = 4, nrepeat = 50, seed = 777
+)
+ad.trt.tune.v$choice.keepX # 100
 ```
 
 Here the optimal number of variables to select for the treatment component was 
-100. Since we have adjusted the amount of treatment variation to preserve, we 
-need to re-choose the optimal number of components related to batch effects 
-using the same criterion mentioned in section *PLSDA-batch*.
+100. 
+
+### Regression mode
 
 ```{r}
-# estimate the number of batch components
-ad.batch.tune <- PLSDA_batch(X = ad.clr, 
-                            Y.trt = ad.trt, Y.bat = ad.batch,
-                            ncomp.trt = 1, keepX.trt = 100,
-                            ncomp.bat = 10)
-ad.batch.tune$explained_variance.bat #4
-sum(ad.batch.tune$explained_variance.bat$Y[seq_len(4)])
+ad.sPLSDA_batch.res.reg <- PLSDA_batch(
+    X = ad.clr,
+    Y.trt = ad.trt, Y.bat = ad.batch,
+    ncomp.trt = 1, keepX.trt = 100,
+    ncomp.bat = 4, mode = "regression"
+)
+ad.sPLSDA_batch.reg <- ad.sPLSDA_batch.res.reg$X.nobatch
 ```
 
-According to the result, we needed 4 batch related components to remove batch 
-variance from the data with function `PLSDA_batch()`.
+### Canonical mode
 
 ```{r}
-ad.sPLSDA_batch.res <- PLSDA_batch(X = ad.clr, 
-                                Y.trt = ad.trt, Y.bat = ad.batch,
-                                ncomp.trt = 1, keepX.trt = 100,
-                                ncomp.bat = 4)
-ad.sPLSDA_batch <- ad.sPLSDA_batch.res$X.nobatch
+ad.sPLSDA_batch.res.cnc <- PLSDA_batch(
+    X = ad.clr,
+    Y.trt = ad.trt, Y.bat = ad.batch,
+    ncomp.trt = 1, keepX.trt = 100,
+    ncomp.bat = 4, mode = "canonical"
+)
+ad.sPLSDA_batch.cnc <- ad.sPLSDA_batch.res.cnc$X.nobatch
 ```
 
-Note: for unbalanced batch x treatment design (with the exception of the 
-nested design), we can specify `balance = FALSE` in `PLSDA_batch()` function 
-to apply weighted PLSDA-batch.
+*Note*: For unbalanced batch x treatment designs (except for nested designs), we can set `balance = FALSE` in the `PLSDA_batch()` function to apply weighted PLSDA-batch.
 
 
 # Assessing batch effect correction
 
-We apply different visualisation and quantitative methods to assessing batch 
-effect correction.
+We apply various visualisation and quantitative methods to assess the effectiveness of batch-effect correction.
 
 ## Methods that detect batch effects
 
@@ -420,284 +441,342 @@ before and after batch effect correction.
 
 ```{r}
 ad.pca.before <- pca(ad.clr, ncomp = 3, scale = TRUE)
-ad.pca.PLSDA_batch <- pca(ad.PLSDA_batch, ncomp = 3, scale = TRUE)
-ad.pca.sPLSDA_batch <- pca(ad.sPLSDA_batch, ncomp = 3, scale = TRUE)
+ad.pca.PLSDA_batch.cnc <- pca(ad.PLSDA_batch.cnc, ncomp = 3, scale = TRUE)
+ad.pca.sPLSDA_batch.cnc <- pca(ad.sPLSDA_batch.cnc, ncomp = 3, scale = TRUE)
+ad.pca.PLSDA_batch.reg <- pca(ad.PLSDA_batch.cnc, ncomp = 3, scale = TRUE)
+ad.pca.sPLSDA_batch.reg <- pca(ad.sPLSDA_batch.cnc, ncomp = 3, scale = TRUE)
 ```
 
 ```{r, fig.show='hide'}
 # order batches
-ad.batch = factor(ad.metadata$sequencing_run_date, 
-                levels = unique(ad.metadata$sequencing_run_date))
+ad.batch <- factor(ad.metadata$sequencing_run_date,
+    levels = unique(ad.metadata$sequencing_run_date)
+)
 
-ad.pca.before.plot <- Scatter_Density(object = ad.pca.before, 
-                                    batch = ad.batch, 
-                                    trt = ad.trt, 
-                                    title = 'Before correction')
-ad.pca.PLSDA_batch.plot <- Scatter_Density(object = ad.pca.PLSDA_batch, 
-                                        batch = ad.batch, 
-                                        trt = ad.trt, 
-                                        title = 'PLSDA-batch')
-ad.pca.sPLSDA_batch.plot <- Scatter_Density(object = ad.pca.sPLSDA_batch, 
-                                            batch = ad.batch, 
-                                            trt = ad.trt, 
-                                            title = 'sPLSDA-batch')
-
+ad.pca.before.plot <- Scatter_Density(
+    components = ad.pca.before$variates$X, comp = c(1, 2),
+    expl.var = ad.pca.before$prop_expl_var$X,
+    batch = ad.batch,
+    trt = ad.trt,
+    title = "Before correction"
+)
+ad.pca.PLSDA_batch.cnc.plot <- Scatter_Density(
+    components = ad.pca.PLSDA_batch.cnc$variates$X, comp = c(1, 2),
+    expl.var = ad.pca.PLSDA_batch.cnc$prop_expl_var$X,
+    batch = ad.batch,
+    trt = ad.trt,
+    title = "PLSDA-batch (canonical)"
+)
+ad.pca.sPLSDA_batch.cnc.plot <- Scatter_Density(
+    components = ad.pca.sPLSDA_batch.cnc$variates$X, comp = c(1, 2),
+    expl.var = ad.pca.sPLSDA_batch.cnc$prop_expl_var$X,
+    batch = ad.batch,
+    trt = ad.trt,
+    title = "sPLSDA-batch (canonical)"
+)
+ad.pca.PLSDA_batch.reg.plot <- Scatter_Density(
+    components = ad.pca.PLSDA_batch.reg$variates$X, comp = c(1, 2),
+    expl.var = ad.pca.PLSDA_batch.reg$prop_expl_var$X,
+    batch = ad.batch,
+    trt = ad.trt,
+    title = "PLSDA-batch (regression)"
+)
+ad.pca.sPLSDA_batch.reg.plot <- Scatter_Density(
+    components = ad.pca.sPLSDA_batch.reg$variates$X, comp = c(1, 2),
+    expl.var = ad.pca.sPLSDA_batch.reg$prop_expl_var$X,
+    batch = ad.batch,
+    trt = ad.trt,
+    title = "sPLSDA-batch (regression)"
+)
 ```
 
-```{r ADpca, fig.height = 12, fig.width = 6, out.width = '80%', echo = FALSE, fig.align = 'center', fig.cap = 'The PCA sample plots with densities before and after batch effect correction in the AD data.'}
-grid.arrange(ad.pca.before.plot, 
-            ad.pca.PLSDA_batch.plot, 
-            ad.pca.sPLSDA_batch.plot, ncol = 1)
+```{r ADpca, fig.height = 15, fig.width = 10, out.width = '100%', echo = FALSE, fig.align = 'center', fig.cap = 'PCA sample plots with density overlays before and after batch-effect correction in the AD data.'}
+grid.arrange(ad.pca.before.plot,
+    ad.pca.PLSDA_batch.cnc.plot,
+    ad.pca.sPLSDA_batch.cnc.plot,
+    ad.pca.PLSDA_batch.reg.plot,
+    ad.pca.sPLSDA_batch.reg.plot,
+    ncol = 2
+)
 ```
 
-As shown in the PCA sample plots, the differences between the samples 
-sequenced at "14/04/2016", "21/09/2017" and the other dates were removed after 
-batch effect correction. The data corrected with PLSDA-batch included slightly 
-more treatment variation mostly on the first PC than sPLSDA-batch, as indicated 
-on the x-axis label (26%). We can also compare the boxplots and density plots 
-for key variables identified in PCA driving the major variance or heatmaps 
-showing obvious patterns before and after batch effect correction 
-(results not shown).
+As shown in the PCA sample plots, the differences between samples sequenced on "14/04/2016", "21/09/2017" and the other dates were removed after batch-effect correction. The data corrected with PLSDA-batch retained slightly more treatment variation, mainly on the first PC, compared with sPLSDA-batch, as indicated by the x-axis label (26%). We can also compare boxplots and density plots for key variables identified by PCA as major drivers of variance, as well as heatmaps showing clear patterns before and after correction (results not shown). No noticeable differences between the two modes can be observed from the PCA plots.
 
 
 **pRDA**
 
 We calculate the global explained variance across all microbial variables 
-using pRDA. To achieve this, we create a loop for each variable from the 
-original (uncorrected) and batch effect-corrected data. The final results are 
-then displayed with `partVar_plot()` from 
+using pRDA. To achieve this, we loop through each variable in both the original (uncorrected) data and the batch-corrected data. The final results are then visualised using the `partVar_plot()` function from the
 $\color{orange}{\text{PLSDAbatch}}$ package.
 
 ```{r ADprda, fig.height = 6, fig.width = 4, out.width = '80%', fig.align = 'center', fig.cap = 'Global explained variance before and after batch effect correction for the AD data.'}
 # AD data
-ad.corrected.list <- list(`Before correction` = ad.clr, 
-                        `PLSDA-batch` = ad.PLSDA_batch, 
-                        `sPLSDA-batch` = ad.sPLSDA_batch)
+ad.corrected.list <- list(
+    `Before correction` = ad.clr,
+    `PLSDA-batch (canonical)` = ad.PLSDA_batch.cnc,
+    `sPLSDA-batch (canonical)` = ad.sPLSDA_batch.cnc,
+    `PLSDA-batch (regression)` = ad.PLSDA_batch.reg,
+    `sPLSDA-batch (regression)` = ad.sPLSDA_batch.reg
+)
 
-ad.prop.df <- data.frame(Treatment = NA, Batch = NA, 
-                        Intersection = NA, 
-                        Residuals = NA) 
-for(i in seq_len(length(ad.corrected.list))){
-    rda.res = varpart(ad.corrected.list[[i]], ~ trt, ~ batch,
-                    data = ad.factors.df, scale = TRUE)
-    ad.prop.df[i, ] <- rda.res$part$indfract$Adj.R.squared}
+ad.prop.df <- data.frame(
+    Treatment = NA, Batch = NA,
+    Intersection = NA,
+    Residuals = NA
+)
+for (i in seq_len(length(ad.corrected.list))) {
+    rda.res <- varpart(ad.corrected.list[[i]], ~trt, ~batch,
+        data = ad.factors.df, scale = TRUE
+    )
+    ad.prop.df[i, ] <- rda.res$part$indfract$Adj.R.squared
+}
 
-rownames(ad.prop.df) = names(ad.corrected.list)
+rownames(ad.prop.df) <- names(ad.corrected.list)
 
-ad.prop.df <- ad.prop.df[, c(1,3,2,4)]
-
-ad.prop.df[ad.prop.df < 0] = 0
-ad.prop.df <- as.data.frame(t(apply(ad.prop.df, 1, 
-                                    function(x){x/sum(x)})))
+ad.prop.df <- ad.prop.df[, c(1, 3, 2, 4)]
 
 partVar_plot(prop.df = ad.prop.df)
 ```
 
-As shown in the above figure, the intersection between batch and treatment 
-variance was small (1.3%) for the $\color{blue}{\text{AD data}}$, which implies 
-that the batch x treatment design is not highly unbalanced. Thus the unweighted 
-PLSDA-batch and sPLSDA-batch were still applicable, and thus the weighted 
-versions were not used. sPLSDA-batch corrected data led to a better performance 
-with undetectable batch and intersection variance compared to PLSDA-batch.
+As shown in the figure above, the intersection between batch and treatment 
+variance was small (1.3%) for the $\color{blue}{\text{AD data}}$, indicating that the batch-by-treatment design is not highly unbalanced. Therefore, the unweighted PLSDA-batch and sPLSDA-batch methods were appropriate, and the weighted versions were not required. The sPLSDA-batch–corrected data showed better performance, with lower intersection variance compared with PLSDA-batch. The results from the two modes were similar.
 
 
 ## Other methods 
 
 $\mathbf{R^2}$
 
-The $R^2$ values for each variable are calculated with `lm()` from 
-$\color{orange}{\text{stats}}$ package. To compare the $R^2$ values among 
-variables, we scale the corrected data before $R^2$ calculation. The results 
-are displayed with `ggplot()` from $\color{orange}{\text{ggplot2}}$ R package.
+The $R^2$ values for each variable are calculated using `lm()` from the 
+$\color{orange}{\text{stats}}$ package. To compare $R^2$ values across 
+variables, we scale the corrected data prior to calculating $R^2$. The results 
+are then visualised using `ggplot()` from the $\color{orange}{\text{ggplot2}}$ R package.
 
 ```{r ADr21, fig.height = 6, fig.width = 8, out.width = '100%', fig.align = 'center', fig.cap = 'AD study: $R^2$ values for each microbial variable before and after batch effect correction.'}
 # AD data
 # scale
-ad.corr_scale.list <- lapply(ad.corrected.list, 
-                            function(x){apply(x, 2, scale)})
+ad.corr_scale.list <- lapply(
+    ad.corrected.list,
+    function(x) {
+        apply(x, 2, scale)
+    }
+)
 
 ad.r_values.list <- list()
-for(i in seq_len(length(ad.corr_scale.list))){
+for (i in seq_len(length(ad.corr_scale.list))) {
     ad.r_values <- data.frame(trt = NA, batch = NA)
-    for(c in seq_len(ncol(ad.corr_scale.list[[i]]))){
-        ad.fit.res.trt <- lm(ad.corr_scale.list[[i]][,c] ~ ad.trt)
-        ad.r_values[c,1] <- summary(ad.fit.res.trt)$r.squared
-        ad.fit.res.batch <- lm(ad.corr_scale.list[[i]][,c] ~ ad.batch)
-        ad.r_values[c,2] <- summary(ad.fit.res.batch)$r.squared
+    for (c in seq_len(ncol(ad.corr_scale.list[[i]]))) {
+        ad.fit.res.trt <- lm(ad.corr_scale.list[[i]][, c] ~ ad.trt)
+        ad.r_values[c, 1] <- summary(ad.fit.res.trt)$r.squared
+        ad.fit.res.batch <- lm(ad.corr_scale.list[[i]][, c] ~ ad.batch)
+        ad.r_values[c, 2] <- summary(ad.fit.res.batch)$r.squared
     }
     ad.r_values.list[[i]] <- ad.r_values
 }
 names(ad.r_values.list) <- names(ad.corr_scale.list)
 
 ad.boxp.list <- list()
-for(i in seq_len(length(ad.r_values.list))){
-    ad.boxp.list[[i]] <- 
-        data.frame(r2 = c(ad.r_values.list[[i]][ ,'trt'],
-                        ad.r_values.list[[i]][ ,'batch']), 
-                    Effects = as.factor(rep(c('Treatment','Batch'), 
-                                        each = 231)))
+for (i in seq_len(length(ad.r_values.list))) {
+    ad.boxp.list[[i]] <-
+        data.frame(
+            r2 = c(
+                ad.r_values.list[[i]][, "trt"],
+                ad.r_values.list[[i]][, "batch"]
+            ),
+            Effects = as.factor(rep(c("Treatment", "Batch"),
+                each = 231
+            ))
+        )
 }
 names(ad.boxp.list) <- names(ad.r_values.list)
 
-ad.r2.boxp <- rbind(ad.boxp.list$`Before correction`,
-                    ad.boxp.list$removeBatchEffect,
-                    ad.boxp.list$ComBat,
-                    ad.boxp.list$`PLSDA-batch`,
-                    ad.boxp.list$`sPLSDA-batch`,
-                    ad.boxp.list$`Percentile Normalisation`,
-                    ad.boxp.list$RUVIII)
+ad.r2.boxp <- rbind(
+    ad.boxp.list$`Before correction`,
+    ad.boxp.list$`PLSDA-batch (canonical)`,
+    ad.boxp.list$`sPLSDA-batch (canonical)`,
+    ad.boxp.list$`PLSDA-batch (regression)`,
+    ad.boxp.list$`sPLSDA-batch (regression)`
+)
 
-ad.r2.boxp$methods <- rep(c('Before correction', 'PLSDA-batch', 'sPLSDA-batch'),
-                        each = 462)
+ad.r2.boxp$methods <- rep(
+    c(
+        "Before correction", "PLSDA-batch (canonical)",
+        "sPLSDA-batch (canonical)", "PLSDA-batch (regression)",
+        "sPLSDA-batch (regression)"
+    ),
+    each = 462
+)
 
-ad.r2.boxp$methods <- factor(ad.r2.boxp$methods, 
-                            levels = unique(ad.r2.boxp$methods))
+ad.r2.boxp$methods <- factor(ad.r2.boxp$methods,
+    levels = unique(ad.r2.boxp$methods)
+)
 
 ggplot(ad.r2.boxp, aes(x = Effects, y = r2, fill = Effects)) +
     geom_boxplot(alpha = 0.80) +
-    theme_bw() + 
-    theme(text = element_text(size = 18),
-            axis.title.x = element_blank(),
-            axis.title.y = element_blank(),
-            axis.text.x = element_text(angle = 60, hjust = 1, size = 18),
-            axis.text.y = element_text(size = 18),
-            panel.grid.minor.x = element_blank(),
-            panel.grid.major.x = element_blank(),
-            legend.position = "right") + facet_grid( ~ methods) + 
-    scale_fill_manual(values=pb_color(c(12,14))) 
-
+    theme_bw() +
+    theme(
+        text = element_text(size = 18),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        axis.text.x = element_text(angle = 60, hjust = 1, size = 18),
+        axis.text.y = element_text(size = 18),
+        panel.grid.minor.x = element_blank(),
+        panel.grid.major.x = element_blank(),
+        legend.position = "right"
+    ) +
+    facet_grid(~methods) +
+    scale_fill_manual(values = pb_color(c(12, 14)))
 ```
-The batch effects related variance was reduced after both PLSDA-batch and 
-sPLSDA-batch correction, but the former maintained a bit more treatment 
-related variance.
 
-```{r ADr22, fig.height = 6, fig.width = 8, out.width = '100%', fig.align = 'center', fig.cap = 'AD study: the sum of $R^2$ values for each microbial variable before and after batch effect correction.'}
+The batch-related variance was reduced after both PLSDA-batch and sPLSDA-batch correction, with PLSDA-batch retaining slightly more treatment-related variance.
+
+```{r ADr22, fig.height = 6, fig.width = 8, out.width = '100%', fig.align = 'center', fig.cap = 'AD study: Sum of $R^2$ values for each microbial variable before and after batch effect correction.'}
 ##################################
 ad.barp.list <- list()
-for(i in seq_len(length(ad.r_values.list))){
-    ad.barp.list[[i]] <- data.frame(r2 = c(sum(ad.r_values.list[[i]][ ,'trt']),
-                                        sum(ad.r_values.list[[i]][ ,'batch'])), 
-                                    Effects = c('Treatment','Batch'))
+for (i in seq_len(length(ad.r_values.list))) {
+    ad.barp.list[[i]] <- data.frame(
+        r2 = c(
+            sum(ad.r_values.list[[i]][, "trt"]),
+            sum(ad.r_values.list[[i]][, "batch"])
+        ),
+        Effects = c("Treatment", "Batch")
+    )
 }
 names(ad.barp.list) <- names(ad.r_values.list)
 
-ad.r2.barp <- rbind(ad.barp.list$`Before correction`,
-                    ad.barp.list$removeBatchEffect,
-                    ad.barp.list$ComBat,
-                    ad.barp.list$`PLSDA-batch`,
-                    ad.barp.list$`sPLSDA-batch`,
-                    ad.barp.list$`Percentile Normalisation`,
-                    ad.barp.list$RUVIII)
+ad.r2.barp <- rbind(
+    ad.barp.list$`Before correction`,
+    ad.barp.list$`PLSDA-batch (canonical)`,
+    ad.barp.list$`sPLSDA-batch (canonical)`,
+    ad.barp.list$`PLSDA-batch (regression)`,
+    ad.barp.list$`sPLSDA-batch (regression)`
+)
 
 
-ad.r2.barp$methods <- rep(c('Before correction', 'PLSDA-batch', 'sPLSDA-batch'),
-                        each = 2)
+ad.r2.barp$methods <- rep(
+    c(
+        "Before correction", "PLSDA-batch (canonical)",
+        "sPLSDA-batch (canonical)", "PLSDA-batch (regression)",
+        "sPLSDA-batch (regression)"
+    ),
+    each = 2
+)
 
-ad.r2.barp$methods <- factor(ad.r2.barp$methods, 
-                            levels = unique(ad.r2.barp$methods))
+ad.r2.barp$methods <- factor(ad.r2.barp$methods,
+    levels = unique(ad.r2.barp$methods)
+)
 
 
 ggplot(ad.r2.barp, aes(x = Effects, y = r2, fill = Effects)) +
-    geom_bar(stat="identity") + 
-    theme_bw() + 
-    theme(text = element_text(size = 18),
-            axis.title.x = element_blank(),
-            axis.title.y = element_blank(),
-            axis.text.x = element_text(angle = 60, hjust = 1, size = 18),
-            axis.text.y = element_text(size = 18),
-            panel.grid.minor.x = element_blank(),
-            panel.grid.major.x = element_blank(),
-            legend.position = "right") + facet_grid( ~ methods) + 
-    scale_fill_manual(values=pb_color(c(12,14)))
-
+    geom_bar(stat = "identity") +
+    theme_bw() +
+    theme(
+        text = element_text(size = 18),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        axis.text.x = element_text(angle = 60, hjust = 1, size = 18),
+        axis.text.y = element_text(size = 18),
+        panel.grid.minor.x = element_blank(),
+        panel.grid.major.x = element_blank(),
+        legend.position = "right"
+    ) +
+    facet_grid(~methods) +
+    scale_fill_manual(values = pb_color(c(12, 14)))
 ```
 
 The overall sum of $R^2$ values indicated that sPLSDA-batch removed slightly 
-more batch variance (PLSDA-batch: 12.40, sPLSDA-batch: 9.25) but preserved less 
-treatment variance (PLSDA-batch: 40.00, sPLSDA-batch: 36.22) than PLSDA-batch. 
+more batch variance than PLSDA-batch (Regression mode: PLSDA-batch (12.49), sPLSDA-batch (9.27); Canonical mode: PLSDA-batch (12.40), sPLSDA-batch (9.25) but preserved less treatment variance (Regression mode: PLSDA-batch (40.21), sPLSDA-batch (36.80); Canonical mode: PLSDA-batch (40.00), sPLSDA-batch (36.22)) compared with PLSDA-batch. 
 
 **Alignment scores**
 
 To use the `alignment_score()` function from 
-$\color{orange}{\text{PLSDAbatch}}$, we need to specify the proportion of data 
-variance to explain (`var`), the number of nearest neighbours (`k`) and the 
-number of principal components to estimate (`ncomp`). We then use `ggplot()` 
-function from $\color{orange}{\text{ggplot2}}$ to visualise the results.
+$\color{orange}{\text{PLSDAbatch}}$, we need to specify the proportion of 
+variance to explain (`var`), the number of nearest neighbours (`k`), and the 
+number of principal components to estimate (`ncomp`). The results are then visualised using `ggplot()` from the $\color{orange}{\text{ggplot2}}$ package.
 
 
 ```{r ADalignment, fig.height = 3, out.width = '90%', fig.align = 'center', fig.cap = 'Comparison of alignment scores before and after batch effect correction using different methods for the AD data.'}
 # AD data
 ad.scores <- c()
 names(ad.batch) <- rownames(ad.clr)
-for(i in seq_len(length(ad.corrected.list))){
-    res <- alignment_score(data = ad.corrected.list[[i]], 
-                            batch = ad.batch, 
-                            var = 0.95, 
-                            k = 8, 
-                            ncomp = 50)
+for (i in seq_len(length(ad.corrected.list))) {
+    res <- alignment_score(
+        data = ad.corrected.list[[i]],
+        batch = ad.batch,
+        var = 0.95,
+        k = 8,
+        ncomp = 50
+    )
     ad.scores <- c(ad.scores, res)
 }
 
-ad.scores.df <- data.frame(scores = ad.scores, 
-                            methods = names(ad.corrected.list))
+ad.scores.df <- data.frame(
+    scores = ad.scores,
+    methods = names(ad.corrected.list)
+)
 
-ad.scores.df$methods <- factor(ad.scores.df$methods, 
-                                levels = rev(names(ad.corrected.list)))
+ad.scores.df$methods <- factor(ad.scores.df$methods,
+    levels = rev(names(ad.corrected.list))
+)
 
 
-ggplot() + geom_col(aes(x = ad.scores.df$methods, 
-                        y = ad.scores.df$scores)) + 
-    geom_text(aes(x = ad.scores.df$methods, 
-                    y = ad.scores.df$scores/2, 
-                    label = round(ad.scores.df$scores, 3)), 
-                size = 3, col = 'white') + 
-    coord_flip() + theme_bw() + ylab('Alignment Scores') + 
-    xlab('') + ylim(0,0.85)
+ggplot() +
+    geom_col(aes(
+        x = ad.scores.df$methods,
+        y = ad.scores.df$scores
+    )) +
+    geom_text(
+        aes(
+            x = ad.scores.df$methods,
+            y = ad.scores.df$scores / 2,
+            label = round(ad.scores.df$scores, 3)
+        ),
+        size = 3, col = "white"
+    ) +
+    coord_flip() +
+    theme_bw() +
+    ylab("Alignment Scores") +
+    xlab("") +
+    ylim(0, 0.85)
 ```
 
-The alignment scores complement the PCA results, especially when batch effect 
-removal is difficult to assess on PCA sample plots. For example in Figure 5, we 
-observed that the samples across different batches were better mixed after 
-batch effect correction with different methods than before, whereas the 
-performance of difference methods was difficult to compare. Since a higher 
-alignment score indicates that samples are better mixed, as shown in the above 
-bar plot, sPLSDA-batch gave a superior performance compared to PLSDA-batch.
+The alignment scores complement the PCA results, especially when the extent of batch-effect removal is difficult to judge from PCA sample plots. In Figure 5, we can clearly see that all methods reduce the major batch effect, but the PCA plots do not reveal the more subtle differences in how effectively each method performs.
+
+Because a higher alignment score indicates better mixing of samples, the bar plot above shows that sPLSDA-batch achieved superior performance compared with PLSDA-batch.
 
 
 # Variable selection
 
-After batch effect correction, we can select discriminative variables against 
-different treatments. 
+After batch effect correction, we can identify discriminative variables associated with different treatments. 
 
-Here, we use `splsda()` from $\color{orange}{\text{mixOmics}}$ to select the 
-top 50 microbial variables that, in combination, discriminate the different 
+Here, we use the `splsda()` function from $\color{orange}{\text{mixOmics}}$ to select the 
+top 50 microbial variables that, in combination, discriminate the 
 treatment 
 groups in the $\color{blue}{\text{AD data}}$. 
 
-For the details to apply sPLS-DA, see 
+For details on how to apply sPLS-DA, see the mixOmics documentation:
 [mixOmics](http://mixomics.org/methods/spls-da/).
 
 ```{r}
-splsda.plsda_batch <- splsda(X = ad.PLSDA_batch, Y = ad.trt, 
-                            ncomp = 3, keepX = rep(50,3))
-select.plsda_batch <- selectVar(splsda.plsda_batch, comp = 1)
-head(select.plsda_batch$value)
+splsda.plsda_batch.reg <- splsda(
+    X = ad.PLSDA_batch.reg, Y = ad.trt,
+    ncomp = 3, keepX = rep(50, 3)
+)
+select.plsda_batch.reg <- selectVar(splsda.plsda_batch.reg, comp = 1)
+head(select.plsda_batch.reg$value)
 
-splsda.splsda_batch <- splsda(X = ad.sPLSDA_batch, Y = ad.trt, 
-                            ncomp = 3, keepX = rep(50,3))
-select.splsda_batch <- selectVar(splsda.splsda_batch, comp = 1)
-head(select.splsda_batch$value)
+splsda.splsda_batch.reg <- splsda(
+    X = ad.sPLSDA_batch.reg, Y = ad.trt,
+    ncomp = 3, keepX = rep(50, 3)
+)
+select.splsda_batch.reg <- selectVar(splsda.splsda_batch.reg, comp = 1)
+head(select.splsda_batch.reg$value)
 
-length(intersect(select.plsda_batch$name, select.splsda_batch$name))
+length(intersect(select.plsda_batch.reg$name, select.splsda_batch.reg$name))
 ```
 
-The discriminative variables were selected and listed according to their 
-contributions against sample groups treated with different ranges of phenol 
-concentration (0-0.5 vs. 1-2 g/L). 
+The discriminative variables were selected and ranked according to their contributions to separating the sample groups treated with different ranges of phenol concentration (0–0.5 vs. 1–2 g/L).
 
-The overlap between selections from the data corrected with PLSDA-batch and 
-sPLSDA-batch is high (43 out of 50), but there still exist different variables 
-between different selections. 
+The overlap between the variables selected from the data corrected with PLSDA-batch and sPLSDA-batch was high (44 out of 50), although some differences between the two selections remained.
 
 # Session Information
 

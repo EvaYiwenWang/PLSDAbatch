@@ -5,19 +5,20 @@
 \title{Partitioned Variance Plot}
 \usage{
 partVar_plot(
-    prop.df,
-    text.cex = 3,
-    x.angle = 60,
-    x.hjust = 1,
-    title = NULL,
-    color.set = NULL
+  prop.df,
+  text.cex = 3,
+  x.angle = 60,
+  x.hjust = 1,
+  title = NULL,
+  color.set = NULL
 )
 }
 \arguments{
 \item{prop.df}{A data frame that contains the proportion of variance
 explained by different sources.}
 
-\item{text.cex}{Numeric, the size of text on the plot.}
+\item{text.cex}{Numeric, the size of text on the plot.
+Use the size rule of \code{ggplot2::geom_text()}.}
 
 \item{x.angle}{Numeric, angle of x axis, in the range of
 \eqn{0} to \eqn{360}.}
@@ -31,60 +32,60 @@ in the range of \eqn{0} to \eqn{1}.}
 The colors are represented by hexadecimal color code.}
 }
 \value{
-None.
+A \code{ggplot} object.
 }
 \description{
 This function draws a partitioned variance plot explained
 by different sources.
 }
 \examples{
-## First example
-library(vegan) # for function varpart()
-library(TreeSummarizedExperiment) # for functions assays(),rowData()
-data('AD_data')
-# centered log ratio transformed data
-ad.clr <- assays(AD_data$EgData)$Clr_value
-ad.batch <- rowData(AD_data$EgData)$Y.bat # batch information
-ad.trt <- rowData(AD_data$EgData)$Y.trt # treatment information
-names(ad.batch) <- names(ad.trt) <- rownames(AD_data$EgData)
+if (requireNamespace("vegan", quietly = TRUE) &&
+    requireNamespace("SummarizedExperiment", quietly = TRUE)) {
+    ## First example
+    data("AD_data")
+    # centered log ratio transformed data
+    ad.clr <- SummarizedExperiment::assays(AD_data$EgData)$Clr_value
+    ad.batch <- SummarizedExperiment::rowData(AD_data$EgData)$Y.bat # batch information
+    ad.trt <- SummarizedExperiment::rowData(AD_data$EgData)$Y.trt # treatment information
+    names(ad.batch) <- names(ad.trt) <- rownames(AD_data$EgData)
 
-ad.factors.df <- data.frame(trt = ad.trt, batch = ad.batch)
-rda.res <- varpart(ad.clr, ~ trt, ~ batch,
-                    data = ad.factors.df, scale = TRUE)
+    ad.factors.df <- data.frame(trt = ad.trt, batch = ad.batch)
+    rda.res <- vegan::varpart(ad.clr, ~trt, ~batch,
+        data = ad.factors.df, scale = TRUE
+    )
 
-ad.prop.df <- data.frame(Treatment = NA, Batch = NA,
-                            Intersection = NA,
-                            Residuals = NA)
-ad.prop.df[1,] <- rda.res$part$indfract$Adj.R.squared
+    ad.prop.df <- data.frame(
+        Treatment = NA, Batch = NA,
+        Intersection = NA,
+        Residuals = NA
+    )
+    ad.prop.df[1, ] <- rda.res$part$indfract$Adj.R.squared
 
-ad.prop.df <- ad.prop.df[, c(1,3,2,4)]
+    ad.prop.df <- ad.prop.df[, c(1, 3, 2, 4)]
 
-ad.prop.df[ad.prop.df < 0] <- 0
-ad.prop.df <- as.data.frame(t(apply(ad.prop.df, 1, function(x){x/sum(x)})))
+    partVar_plot(prop.df = ad.prop.df)
 
-partVar_plot(prop.df = ad.prop.df)
+    ## Second example
+    # a list of data corrected from different methods
+    ad.corrected.list <- SummarizedExperiment::assays(AD_data$CorrectData)
+    ad.prop.df <- data.frame(
+        Treatment = NA, Batch = NA,
+        Intersection = NA,
+        Residuals = NA
+    )
+    for (i in seq_len(length(ad.corrected.list))) {
+        rda.res <- vegan::varpart(ad.corrected.list[[i]], ~trt, ~batch,
+            data = ad.factors.df, scale = TRUE
+        )
+        ad.prop.df[i, ] <- rda.res$part$indfract$Adj.R.squared
+    }
 
-## Second example
-# a list of data corrected from different methods
-ad.corrected.list <- assays(AD_data$CorrectData)
-ad.prop.df <- data.frame(Treatment = NA, Batch = NA,
-                            Intersection = NA,
-                            Residuals = NA)
-for(i in seq_len(length(ad.corrected.list))){
-    rda.res <- varpart(ad.corrected.list[[i]], ~ trt, ~ batch,
-                    data = ad.factors.df, scale = TRUE)
-    ad.prop.df[i, ] <- rda.res$part$indfract$Adj.R.squared}
+    rownames(ad.prop.df) <- names(ad.corrected.list)
 
-rownames(ad.prop.df) <- names(ad.corrected.list)
+    ad.prop.df <- ad.prop.df[, c(1, 3, 2, 4)]
 
-ad.prop.df <- ad.prop.df[, c(1,3,2,4)]
-
-ad.prop.df[ad.prop.df < 0] <- 0
-ad.prop.df <- as.data.frame(t(apply(ad.prop.df, 1,
-                                    function(x){x/sum(x)})))
-
-partVar_plot(prop.df = ad.prop.df)
-
+    partVar_plot(prop.df = ad.prop.df)
+}
 
 }
 \seealso{
@@ -93,5 +94,5 @@ partVar_plot(prop.df = ad.prop.df)
 methods for batch effect detection and batch effect removal assessment.
 }
 \author{
-Yiwen Wang, Kim-Anh Lê Cao
+Yiwen Wang, Kim-Anh Le Cao
 }

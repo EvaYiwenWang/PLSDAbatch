@@ -2,59 +2,74 @@
 % Please edit documentation in R/batch_detection.R
 \name{density_plot}
 \alias{density_plot}
-\title{Density Plot}
+\title{Density Plot by Batch}
 \usage{
 density_plot(
-    df,
-    title = NULL,
-    batch.legend.title = "Batch",
-    xlab = "Value",
-    color.set = NULL,
-    title.hjust = 0.5
+  df,
+  title = NULL,
+  batch.legend.title = "Batch",
+  xlab = "Value",
+  color.set = NULL,
+  title.hjust = 0.5
 )
 }
 \arguments{
-\item{df}{A data frame used to draw the density plots.}
+\item{df}{A data frame with at least two columns.
+The first column contains the numeric values to be plotted on the x-axis,
+and the second column contains the batch information (categorical).
+Additional columns, if present, are ignored.}
 
 \item{title}{Character, the plot title.}
 
-\item{batch.legend.title}{Character, the legend title of batches.}
+\item{batch.legend.title}{Character, the legend title for the batch groups.}
 
-\item{xlab}{Character, x-axis title.}
+\item{xlab}{Character, the x-axis title.}
 
-\item{color.set}{A vector of character, indicating the set of colors to use.
-The colors are represented by hexadecimal color code.}
+\item{color.set}{A character vector specifying the colours to use for the
+batch groups. Colours can be given as hexadecimal codes or any values
+understood by \code{ggplot2}. If \code{NULL}, a default palette based on
+\code{pb_color()} is used. If the length is shorter than the number of
+batch levels, it will be recycled with a warning.}
 
 \item{title.hjust}{Numeric, horizontal justification of the plot title,
-in the range of \eqn{0} to \eqn{1}.}
+in the range from \eqn{0} to \eqn{1}.}
 }
 \value{
-None.
+A \code{ggplot} object representing the density plots.
 }
 \description{
-This function draws an overlap of multiple density plots for each batch.
+This function draws overlapping density plots for each batch.
 }
 \examples{
-# The first example
-library(TreeSummarizedExperiment) # for functions assays(),rowData()
-data('AD_data')
-# centered log ratio transformed data
-ad.clr <- assays(AD_data$EgData)$Clr_value
-ad.batch <- rowData(AD_data$EgData)$Y.bat # batch information
-names(ad.batch) <- rownames(AD_data$EgData)
-ad.df <- data.frame(value = ad.clr[,1], batch = ad.batch)
-density_plot(df = ad.df, title = 'OTU 12')
+if (requireNamespace("SummarizedExperiment", quietly = TRUE)) {
+    data("AD_data")
 
-# The second example
-colorlist <- rainbow(10)
-density_plot(df = ad.df, title = 'OTU 12', color.set = colorlist)
+    # centered log-ratio transformed data
+    ad.clr <- SummarizedExperiment::assays(AD_data$EgData)$Clr_value
+    ad.batch <- SummarizedExperiment::rowData(AD_data$EgData)$Y.bat
+    names(ad.batch) <- rownames(AD_data$EgData)
+
+    ad.df <- data.frame(
+        value = ad.clr[, 1],
+        batch = ad.batch
+    )
+
+    density_plot(df = ad.df, title = "OTU 12")
+
+    # using a custom colour set
+    colorlist <- rainbow(10)
+    density_plot(
+        df = ad.df, title = "OTU 12",
+        color.set = colorlist
+    )
+}
 
 }
 \seealso{
 \code{\link{Scatter_Density}}, \code{\link{box_plot}},
-\code{\link{alignment_score}} and \code{\link{partVar_plot}} as the other
+\code{\link{alignment_score}} and \code{\link{partVar_plot}} as other
 methods for batch effect detection and batch effect removal assessment.
 }
 \author{
-Yiwen Wang, Kim-Anh Lê Cao
+Yiwen Wang, Kim-Anh Le Cao
 }

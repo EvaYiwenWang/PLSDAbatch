@@ -5,17 +5,18 @@
 \title{Partial Least Squares Discriminant Analysis for Batch Effect Correction}
 \usage{
 PLSDA_batch(
-    X,
-    Y.trt = NULL,
-    Y.bat,
-    ncomp.trt = 2,
-    ncomp.bat = 2,
-    keepX.trt = rep(ncol(X), ncomp.trt),
-    keepX.bat = rep(ncol(X), ncomp.bat),
-    max.iter = 500,
-    tol = 1e-06,
-    near.zero.var = TRUE,
-    balance = TRUE
+  X,
+  Y.trt = NULL,
+  Y.bat,
+  ncomp.trt = 2,
+  ncomp.bat = 2,
+  keepX.trt = NULL,
+  keepX.bat = NULL,
+  max.iter = 500,
+  tol = 1e-06,
+  near.zero.var = TRUE,
+  balance = TRUE,
+  mode = c("regression", "canonical")
 )
 }
 \arguments{
@@ -59,6 +60,11 @@ Default value is \code{TRUE}.}
 argument to \code{FALSE} extends \code{PLSDA-batch} to
 \code{weighted PLSDA-batch}. \code{wPLSDA-batch} can deal with highly
 unbalanced designs but not the nested design. Default value is \code{TRUE}.}
+
+\item{mode}{Character, either \code{"regression"} or \code{"canonical"}.
+Default mode is 'regression', which is recommended for most use cases.
+If you want to reproduce previous results obtained from PLSDAbatch <= 1.6.0,
+please explicitly set mode = 'canonical'.}
 }
 \value{
 \code{PLSDA_batch} returns a list that contains
@@ -98,21 +104,38 @@ PLSDA-batch, the \code{balance} should be set to \code{FALSE}, and it cannot
 deal with the nested \code{batch x treatment design}.
 }
 \examples{
-## First example
-## PLSDA-batch
-library(TreeSummarizedExperiment) # for functions assays(),rowData()
-data('AD_data')
-X <- assays(AD_data$EgData)$Clr_value # centered log ratio transformed data
-Y.trt <- rowData(AD_data$EgData)$Y.trt # treatment information
-Y.bat <- rowData(AD_data$EgData)$Y.bat # batch information
-names(Y.bat) <- names(Y.trt) <- rownames(AD_data$EgData)
-ad_plsda_batch <- PLSDA_batch(X, Y.trt, Y.bat, ncomp.trt = 1, ncomp.bat = 5)
-ad_X.corrected <- ad_plsda_batch$X.nobatch # batch corrected data
+if (requireNamespace("SummarizedExperiment", quietly = TRUE)) {
+    ## First example
+    ## PLSDA-batch
+    data("AD_data")
 
-## Second example
-## sparse PLSDA-batch
-ad_splsda_batch <- PLSDA_batch(X, Y.trt, Y.bat, ncomp.trt = 1,
-                                keepX.trt = 30, ncomp.bat = 5)
+    X <- SummarizedExperiment::assays(AD_data$EgData)$Clr_value # centered log ratio transformed data
+    Y.trt <- SummarizedExperiment::rowData(AD_data$EgData)$Y.trt # treatment information
+    Y.bat <- SummarizedExperiment::rowData(AD_data$EgData)$Y.bat # batch information
+    names(Y.bat) <- names(Y.trt) <- rownames(AD_data$EgData)
+
+    ad_plsda_batch <- PLSDA_batch(X, Y.trt, Y.bat,
+        ncomp.trt = 1,
+        ncomp.bat = 4, mode = "regression"
+    )
+    ad_X.corrected <- ad_plsda_batch$X.nobatch # batch corrected data
+
+    ## Second example
+    ## sparse PLSDA-batch
+    ad_splsda_batch <- PLSDA_batch(X, Y.trt, Y.bat,
+        ncomp.trt = 1,
+        keepX.trt = 100, ncomp.bat = 4,
+        mode = "regression"
+    )
+
+    ## Third example
+    ## weighted PLSDA-batch
+    ad_wplsda_batch <- PLSDA_batch(X, Y.trt, Y.bat,
+        ncomp.trt = 1,
+        ncomp.bat = 4, balance = FALSE,
+        mode = "regression"
+    )
+}
 
 }
 \references{
@@ -125,5 +148,5 @@ ad_splsda_batch <- PLSDA_batch(X, Y.trt, Y.bat, ncomp.trt = 1,
 the other methods for batch effect management.
 }
 \author{
-Yiwen Wang, Kim-Anh Lê Cao
+Yiwen Wang, Kim-Anh Le Cao
 }

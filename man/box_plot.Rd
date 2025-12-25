@@ -2,67 +2,82 @@
 % Please edit documentation in R/batch_detection.R
 \name{box_plot}
 \alias{box_plot}
-\title{Box Plot}
+\title{Box Plot by Batch}
 \usage{
 box_plot(
-    df,
-    title = NULL,
-    batch.legend.title = "Batch",
-    ylab = "Value",
-    color.set = NULL,
-    x.angle = 0,
-    x.hjust = 0.5,
-    x.vjust = 0.5
+  df,
+  title = NULL,
+  batch.legend.title = "Batch",
+  ylab = "Value",
+  color.set = NULL,
+  x.angle = 0,
+  x.hjust = 0.5,
+  x.vjust = 0.5
 )
 }
 \arguments{
-\item{df}{A data frame used to draw the box plots.}
+\item{df}{A data frame with at least two columns.
+The first column contains the numeric values to be plotted on the y-axis,
+and the second column contains the batch information (categorical).
+Additional columns, if present, are ignored.}
 
 \item{title}{Character, the plot title.}
 
-\item{batch.legend.title}{Character, the legend title of batches.}
+\item{batch.legend.title}{Character, the legend title for the batch groups.}
 
-\item{ylab}{Character, y-axis title.}
+\item{ylab}{Character, the y-axis title.}
 
-\item{color.set}{A vector of character, indicating the set of colors to use.
-The colors are represented by hexadecimal color code.}
+\item{color.set}{A character vector specifying the colours to use for the
+batch groups. Colours can be given as hexadecimal codes or any values
+understood by \code{ggplot2}. If \code{NULL}, a default palette based on
+\code{pb_color()} is used. If the length is shorter than the number of
+batch levels, it will be recycled with a warning.}
 
-\item{x.angle}{Numeric, angle of x axis, in the range of
-\eqn{0} to \eqn{360}.}
+\item{x.angle}{Numeric, angle of the x-axis labels in degrees,
+in the range from \eqn{0} to \eqn{360}.}
 
-\item{x.hjust}{Numeric, horizontal justification of x axis, in the range of
-\eqn{0} to \eqn{1}.}
+\item{x.hjust}{Numeric, horizontal justification of the x-axis labels,
+in the range from \eqn{0} to \eqn{1}.}
 
-\item{x.vjust}{Numeric, vertical justification of x axis, in the range of
-\eqn{0} to \eqn{1}.}
+\item{x.vjust}{Numeric, vertical justification of the x-axis labels,
+in the range from \eqn{0} to \eqn{1}.}
 }
 \value{
-None.
+A \code{ggplot} object representing the box plots.
 }
 \description{
 This function draws side-by-side box plots for each batch.
 }
 \examples{
-# The first example
-library(TreeSummarizedExperiment) # for functions assays(),rowData()
-data('AD_data')
-# centered log ratio transformed data
-ad.clr <- assays(AD_data$EgData)$Clr_value
-ad.batch <- rowData(AD_data$EgData)$Y.bat # batch information
-names(ad.batch) <- rownames(AD_data$EgData)
-ad.df <- data.frame(value = ad.clr[,1], batch = ad.batch)
-box_plot(df = ad.df, title = 'OTU 12', x.angle = 30)
+if (requireNamespace("SummarizedExperiment", quietly = TRUE)) {
+    data("AD_data")
 
-# The second example
-colorlist <- rainbow(10)
-box_plot(df = ad.df, title = 'OTU 12', color.set = colorlist, x.angle = 30)
+    # centered log-ratio transformed data
+    ad.clr <- SummarizedExperiment::assays(AD_data$EgData)$Clr_value
+    ad.batch <- SummarizedExperiment::rowData(AD_data$EgData)$Y.bat
+    names(ad.batch) <- rownames(AD_data$EgData)
+
+    ad.df <- data.frame(
+        value = ad.clr[, 1],
+        batch = ad.batch
+    )
+
+    box_plot(df = ad.df, title = "OTU 12", x.angle = 30)
+
+    # using a custom colour set
+    colorlist <- rainbow(10)
+    box_plot(
+        df = ad.df, title = "OTU 12",
+        color.set = colorlist, x.angle = 30
+    )
+}
 
 }
 \seealso{
 \code{\link{Scatter_Density}}, \code{\link{density_plot}},
-\code{\link{alignment_score}} and \code{\link{partVar_plot}} as the other
+\code{\link{alignment_score}} and \code{\link{partVar_plot}} as other
 methods for batch effect detection and batch effect removal assessment.
 }
 \author{
-Yiwen Wang, Kim-Anh Lê Cao
+Yiwen Wang, Kim-Anh Le Cao
 }

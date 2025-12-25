@@ -4,13 +4,7 @@
 \alias{alignment_score}
 \title{Alignment Scores for Evaluating the Degree of Mixing Samples}
 \usage{
-alignment_score(
-    data,
-    batch,
-    var = 0.95,
-    k = round(0.1 * nrow(data)),
-    ncomp = 20
-)
+alignment_score(data, batch, var = 0.95, k = NULL, ncomp = 20)
 }
 \arguments{
 \item{data}{A numeric matrix. Samples are in rows, while variables are in
@@ -42,13 +36,14 @@ in the batch corrected data. It is based on the dissimilarity matrix from
 Principal Component Analysis.
 }
 \examples{
-library(TreeSummarizedExperiment) # for functions assays(),rowData()
-data('sponge_data')
-X <- assays(sponge_data)$Clr_value # centered log ratio transformed data
-batch <- rowData(sponge_data)$Y.bat # batch information
-names(batch) <- rownames(sponge_data)
+if (requireNamespace("SummarizedExperiment", quietly = TRUE)) {
+    data("sponge_data")
+    X <- SummarizedExperiment::assays(sponge_data)$Clr_value # centered log ratio transformed data
+    batch <- SummarizedExperiment::rowData(sponge_data)$Y.bat # batch information
+    names(batch) <- rownames(sponge_data)
 
-alignment_score(data = X, batch = batch, var = 0.95, k = 3, ncomp = 20)
+    alignment_score(data = X, batch = batch, var = 0.95, k = 3, ncomp = 20)
+}
 
 }
 \references{
@@ -60,5 +55,5 @@ alignment_score(data = X, batch = batch, var = 0.95, k = 3, ncomp = 20)
 methods for batch effect detection and batch effect removal assessment.
 }
 \author{
-Yiwen Wang, Kim-Anh Lê Cao
+Yiwen Wang, Kim-Anh Le Cao
 }

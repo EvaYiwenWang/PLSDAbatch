@@ -1,35 +1,36 @@
 Package: PLSDAbatch
 Type: Package
 Title: PLSDA-batch
-Version: 1.7.0
+Version: 1.99.0
 Authors@R: 
-    c(person(given = "Yiwen", family = "Wang", middle = "(Eva)", role = c("aut", "cre"), email = "anjiwangyiwen@gmail.com", comment=c(ORCID="0000-0002-7067-9093")),
+    c(person(given = "Yiwen (Eva)", family = "Wang", role = c("aut", "cre"), email = "anjiwangyiwen@gmail.com", comment=c(ORCID="0000-0002-7067-9093")),
       person(given = "Kim-Anh", family = "Le Cao", role = "aut", email = "kimanh.lecao@unimelb.edu.au"))
 Description: A novel framework to correct for batch effects prior to any downstream analysis in microbiome data based on Projection to Latent Structures Discriminant Analysis. The main method is named “PLSDA-batch”. It first estimates treatment and batch variation with latent components, then subtracts batch-associated components from the data whilst preserving biological variation of interest. PLSDA-batch is highly suitable for microbiome data as it is non-parametric, multivariate and allows for ordination and data visualisation. Combined with centered log-ratio transformation for addressing uneven library sizes and compositional structure, PLSDA-batch addresses all characteristics of microbiome data that existing correction methods have ignored so far. Two other variants are proposed for 1/ unbalanced batch x treatment designs that are commonly encountered in studies with small sample sizes, and for 2/ selection of discriminative variables amongst treatment groups to avoid overfitting in classification problems. These two variants have widened the scope of applicability of PLSDA-batch to different data settings. 
 License: GPL-3
 Depends: 
-    R (>= 4.3.0)
-Imports: 
-    mixOmics,
-    scales,
-    Rdpack,
+    R (>= 4.5.0)
+Imports:
     ggplot2,
-    gridExtra,
     ggpubr,
-    lmerTest,
-    performance,
     grid,
+    gridExtra,
+    lmerTest,
+    mixOmics,
+    performance,
+    scales,
     stats,
-    pheatmap,
-    vegan,
-    Biobase,
-    BiocStyle,
-    TreeSummarizedExperiment
+    Rdpack
 Suggests: 
+    SummarizedExperiment,
+    TreeSummarizedExperiment,
+    vegan,
     knitr,
     rmarkdown,
+    BiocStyle,
     testthat,
-    badger
+    badger,
+    pheatmap,
+    Biobase
 biocViews:
     StatisticalMethod,
     DimensionReduction,
@@ -41,7 +42,7 @@ biocViews:
     Visualization
 VignetteBuilder: knitr
 RdMacros: Rdpack
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.3
 Encoding: UTF-8
 URL: https://github.com/EvaYiwenWang/PLSDAbatch
 BugReports: https://github.com/EvaYiwenWang/PLSDAbatch/issues/

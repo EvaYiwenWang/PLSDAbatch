@@ -24,3 +24,13 @@ opts_chunk$set( echo = TRUE, eval = FALSE, warning = FALSE, message = FALSE)
 #### September 2024
 
 * fixed bugs: the clash of functions from dependencies.
+
+#### December 2025
+
+* Added a `mode` argument to `PLSDA_batch()`.
+* Added a `criterion` argument to `linear_regres()` to select P-values from the optimal model based on the specified criterion.
+* Added a `return.model` arugument to `linear_regres()` to reduce memory usage when set to `FALSE`.
+* Extended `Scatter_Density()` to support any multivariate method that returns component scores, including PCA and PLS, with corresponding arguments updated.
+* Added `lighten()` and `darken()` functions for enhanced color generation.
+* Refined multiple functions to improve usability.
+* Updated the vignette accordingly.

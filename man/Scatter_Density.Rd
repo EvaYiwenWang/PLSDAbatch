@@ -2,85 +2,147 @@
 % Please edit documentation in R/batch_detection.R
 \name{Scatter_Density}
 \alias{Scatter_Density}
-\title{Principal Component Analysis (PCA) with Density Plots per Component}
+\title{Scatter Plot of Components with Marginal Density Plots}
 \usage{
 Scatter_Density(
-    object,
-    batch = NULL,
-    trt = NULL,
-    xlim = NULL,
-    ylim = NULL,
-    color.set = NULL,
-    batch.legend.title = "Batch",
-    trt.legend.title = "Treatment",
-    density.lwd = 0.2,
-    title = NULL,
-    title.cex = 1.5,
-    legend.cex = 0.7,
-    legend.title.cex = 0.75
+  components,
+  comp = c(1, 2),
+  expl.var = NULL,
+  batch = NULL,
+  trt = NULL,
+  xlim = NULL,
+  ylim = NULL,
+  color.set = NULL,
+  shape.set = NULL,
+  batch.legend.title = "Batch",
+  trt.legend.title = "Treatment",
+  density.lwd = 0.2,
+  title = NULL,
+  title.cex = 1.5,
+  legend.cex = 0.7,
+  legend.title.cex = 0.75
 )
 }
 \arguments{
-\item{object}{The object of class PCA.}
+\item{components}{A numeric matrix or data frame containing component
+scores. Samples are in rows and components in columns.}
 
-\item{batch}{A factor or a class vector for the batch grouping information
-(categorical outcome variable).}
+\item{comp}{Integer vector of length two indicating which components
+to plot on the x and y axes respectively, for example \code{c(1, 2)}
+or \code{c(1, 3)}.}
 
-\item{trt}{A factor or a class vector for the treatment grouping information
-(categorical outcome variable).}
+\item{expl.var}{Optional numeric vector giving the proportion of variance
+explained by each component. If provided, it should have length at least
+\code{max(comp)} and is used to annotate the axis labels.}
 
-\item{xlim}{A numeric vector of length 2, indicating the x coordinate ranges.}
+\item{batch}{Optional factor or vector giving batch grouping information
+(categorical outcome). If provided, its length must match the number of
+samples in \code{components}. When present, points and density plots are
+coloured by batch.}
 
-\item{ylim}{A numeric vector of length 2, indicating the y coordinate ranges.}
+\item{trt}{Optional factor or vector giving treatment grouping
+information (categorical outcome). If provided, its length must match
+the number of samples in \code{components}. When present, points and
+density plots are further distinguished by treatment-specific shapes
+or line types.}
 
-\item{color.set}{A vector of character, indicating the set of colors to use.
-The colors are represented by hexadecimal color code.}
+\item{xlim}{Optional numeric vector of length two giving the x-axis
+limits for the scatter plot. If \code{NULL}, limits are chosen
+automatically from the data.}
 
-\item{batch.legend.title}{Character, the legend title of batches.}
+\item{ylim}{Optional numeric vector of length two giving the y-axis
+limits for the scatter plot. If \code{NULL}, limits are chosen
+automatically from the data.}
 
-\item{trt.legend.title}{Character, the legend title of treatments.}
+\item{color.set}{Optional character vector of colours (hexadecimal codes)
+used to represent batch levels. If \code{NULL} and \code{batch} is
+provided, an internal palette is used and extended when the number of
+batches exceeds the base palette size. If \code{batch} is \code{NULL},
+this argument is ignored.}
 
-\item{density.lwd}{Numeric, the thickness of density lines.}
+\item{shape.set}{Optional numeric vector of plotting characters
+used to represent treatment levels. If \code{NULL} and \code{trt} is
+provided, an internal sequence of hollow and solid shapes is used.
+If \code{trt} is \code{NULL}, this argument is ignored and a fixed
+shape is used.}
 
-\item{title}{Character, the plot title.}
+\item{batch.legend.title}{Character string giving the legend title
+for batch.}
 
-\item{title.cex}{Numeric, the size of plot title.}
+\item{trt.legend.title}{Character string giving the legend title
+for treatment.}
 
-\item{legend.cex}{Numeric, the size of legends.}
+\item{density.lwd}{Numeric value giving the line width for the density
+curves in the marginal plots.}
 
-\item{legend.title.cex}{Numeric, the size of legend title.}
+\item{title}{Character string giving the main title.}
+
+\item{title.cex}{Numeric value controlling the relative size of the
+main title.}
+
+\item{legend.cex}{Numeric value controlling the relative size of legend
+text.}
+
+\item{legend.title.cex}{Numeric value controlling the relative size of
+legend titles.}
 }
 \value{
-None.
+A grob object containing the combined scatter
+and density plots.
 }
 \description{
-This function draws a PCA sample plot with density plots per
-principal component.
+This function draws a sample scatter plot for two selected components,
+together with marginal density plots along each axis.
+It is generic in the sense that it only requires a matrix or dataframe
+of component scores, and can therefore be used with PCA, PLS or any
+other multivariate method that returns component scores.
 }
 \examples{
-# The first example
-library(mixOmics) # for function pca()
-library(TreeSummarizedExperiment) # for functions assays(),rowData()
-data('AD_data')
-# centered log ratio transformed data
-ad.clr <- assays(AD_data$EgData)$Clr_value
-ad.pca.before <- pca(ad.clr, ncomp = 3, scale = TRUE)
-ad.batch <- rowData(AD_data$EgData)$Y.bat # batch information
-ad.trt <- rowData(AD_data$EgData)$Y.trt # treatment information
-names(ad.batch) <- names(ad.trt) <- rownames(AD_data$EgData)
-Scatter_Density(object = ad.pca.before, batch = ad.batch, trt = ad.trt)
+if (requireNamespace("mixOmics", quietly = TRUE) &&
+    requireNamespace("SummarizedExperiment", quietly = TRUE)) {
+    ## Example using a PCA object from mixOmics
 
-# The second example
-colorlist <- rainbow(10)
-Scatter_Density(object = ad.pca.before, batch = ad.batch, trt = ad.trt,
-                color.set = colorlist)
+    data("AD_data")
+
+    ## centered log-ratio transformed data
+    ad.clr <- SummarizedExperiment::assays(AD_data$EgData)$Clr_value
+    ad.pca <- mixOmics::pca(ad.clr, ncomp = 3, scale = TRUE)
+
+    ad.batch <- SummarizedExperiment::rowData(AD_data$EgData)$Y.bat # batch information
+    ad.trt <- SummarizedExperiment::rowData(AD_data$EgData)$Y.trt # treatment information
+    names(ad.batch) <- names(ad.trt) <- rownames(AD_data$EgData)
+
+    ## components and explained variance extracted from the PCA object
+    comp.mat <- ad.pca$variates$X
+    expl.var <- ad.pca$prop_expl_var$X
+
+    ## Scatter plot of the first two components
+    Scatter_Density(
+        components = comp.mat,
+        comp = c(1, 2),
+        expl.var = expl.var,
+        batch = ad.batch,
+        trt = ad.trt
+    )
+
+    ## Scatter plot of components 1 and 3, with a user-defined colour set
+    cols <- rainbow(10)
+    Scatter_Density(
+        components = comp.mat,
+        comp = c(1, 3),
+        expl.var = expl.var,
+        batch = ad.batch,
+        trt = ad.trt,
+        color.set = cols
+    )
+}
 
 }
 \seealso{
 \code{\link{box_plot}}, \code{\link{density_plot}},
-\code{\link{alignment_score}} and \code{\link{partVar_plot}} as the other
+\code{\link{alignment_score}} and \code{\link{partVar_plot}} as other
 methods for batch effect detection and batch effect removal assessment.
 }
 \author{
-Yiwen Wang, Kim-Anh Lê Cao
+Yiwen Wang, Kim-Anh Le Cao
 }

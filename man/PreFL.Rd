@@ -2,47 +2,51 @@
 % Please edit documentation in R/data_preprocessing.R
 \name{PreFL}
 \alias{PreFL}
-\title{Prefiltering for Microbiome Data}
+\title{Prefiltering for Microbiome Count Data}
 \usage{
 PreFL(data, keep.spl = 10, keep.var = 0.01)
 }
 \arguments{
-\item{data}{The data to be prefiltered. The samples in rows and variables
-in columns.}
+\item{data}{A numeric matrix or data frame with samples in rows and
+variables in columns.}
 
-\item{keep.spl}{The minimum counts of a sample to be kept.}
+\item{keep.spl}{Numeric, the minimum total count of a sample to be kept.
+Samples with a total count smaller than \code{keep.spl} are removed.
+Default is \code{10}.}
 
-\item{keep.var}{The minimum proportion of counts of a variable to be kept.}
+\item{keep.var}{Numeric, the minimum percentage (between \code{0} and
+\code{100}) of total counts a variable must contribute to be kept.
+For example, \code{keep.var = 0.01} keeps variables that account for
+at least \code{0.01\%} of the total counts. Default is \code{0.01}.}
 }
 \value{
 \code{PreFL} returns a list that contains the following components:
 \item{data.filter}{The filtered data matrix.}
-\item{sample.idx}{The indexs of samples kept.}
-\item{var.idx}{The indexs of variables kept.}
-\item{zero.prob}{The proportion of zeros of the input data.}
+\item{sample.idx}{The indices of samples kept.}
+\item{var.idx}{The indices of variables kept.}
+\item{zero.prob.before}{The proportion of zeros in the input data.}
+\item{zero.prob.after}{The proportion of zeros after filtering.}
 }
 \description{
-This function prefilters the data to remove samples or microbial variables
-with excess zeroes.
+This function prefilters microbiome count data to remove samples or microbial
+variables with very low abundance.
 }
 \examples{
-library(TreeSummarizedExperiment) # for functions assays()
-data('AD_data')
+if (requireNamespace("SummarizedExperiment", quietly = TRUE)) {
+    data("AD_data")
 
-ad.count <- assays(AD_data$FullData)$Count # microbial count data
-ad.filter.res <- PreFL(data = ad.count)
+    ad.count <- SummarizedExperiment::assays(AD_data$FullData)$Count
+    ad.filter.res <- PreFL(data = ad.count)
 
-# The proportion of zeroes of the AD count data
-ad.zero.prob <- ad.filter.res$zero.prob
-
-# The filtered AD count data
-ad.filter <- ad.filter.res$data.filter
-
+    ad.filter <- ad.filter.res$data.filter
+    ad.zero.before <- ad.filter.res$zero.prob.before
+    ad.zero.after <- ad.filter.res$zero.prob.after
+}
 
 }
 \references{
 \insertRef{le2016mixmc}{PLSDAbatch}
 }
 \author{
-Yiwen Wang, Kim-Anh Lê Cao
+Yiwen Wang, Kim-Anh Le Cao
 }

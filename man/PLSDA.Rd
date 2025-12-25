@@ -4,7 +4,15 @@
 \alias{PLSDA}
 \title{Partial Least Squares Discriminant Analysis}
 \usage{
-PLSDA(X, Y, ncomp, keepX = rep(ncol(X), ncomp), tol = 1e-06, max.iter = 500)
+PLSDA(
+  X,
+  Y,
+  ncomp = 2,
+  keepX = NULL,
+  mode = c("regression", "canonical"),
+  tol = 1e-06,
+  max.iter = 500
+)
 }
 \arguments{
 \item{X}{A numeric matrix that is centered and scaled as an explanatory
@@ -17,6 +25,9 @@ matrix. \code{NA}s are not allowed.}
 \item{keepX}{A numeric vector of length \code{ncomp}, the number of variables
 to keep in \eqn{X}-loadings. By default all variables are kept in the model.
 A valid input of \code{keepX} extends \code{PLSDA} to a sparse version.}
+
+\item{mode}{Character, either \code{"regression"} or \code{"canonical"}.
+Default mode is 'regression'.}
 
 \item{tol}{Numeric, convergence stopping value.}
 
@@ -45,32 +56,13 @@ This function estimates latent dimensions from the explanatory matrix
 matrix \code{Y}. It is a built-in function of \code{PLSDA_batch}.
 }
 \examples{
-# A built-in function of PLSDA_batch, not separately used.
-# Not run
-data('AD_data')
-library(mixOmics)
-library(TreeSummarizedExperiment)
-
-X <- assays(AD_data$EgData)$Clr_value
-Y.trt <- rowData(AD_data$EgData)$Y.trt
-names(Y.trt) <- rownames(AD_data$EgData)
-
-X.scale <- scale(X, center = TRUE, scale = TRUE)
-
-# convert Y.trt to be a dummy matrix
-Y.trt.mat <- unmap(as.numeric(Y.trt))
-Y.trt.scale <- scale(Y.trt.mat, center = TRUE, scale = TRUE)
-
-ad_plsda.trt <- PLSDA(X.scale, Y.trt.scale, ncomp = 1)
-# the latent components associated with Y.trt:
-X.compnt <- ad_plsda.trt$latent_comp$t
-
+NULL
 
 }
 \references{
 \insertRef{barker2003partial}{PLSDAbatch}
 }
 \author{
-Yiwen Wang, Kim-Anh Lê Cao
+Yiwen Wang, Kim-Anh Le Cao
 }
 \keyword{Internal}
