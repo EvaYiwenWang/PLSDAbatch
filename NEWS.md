@@ -49,3 +49,7 @@ of function `percentile_norm()`
   - Refined multiple functions to improve usability.
   - Updated the vignette accordingly.
 
+# Version: 1.99.1
+* Date: 2026-01-06
+* Text: Fix the figure display issue
+* Details: Fix the issue where Figures 2 and 3 are not shown in the vignette.
