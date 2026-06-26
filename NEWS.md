@@ -53,3 +53,9 @@ of function `percentile_norm()`
 * Date: 2026-01-06
 * Text: Fix the figure display issue
 * Details: Fix the issue where Figures 2 and 3 are not shown in the vignette.
+
+# Version: 2.1.1
+* Date: 2026-06-26
+* Text: Fix `percentile_norm()`
+* Details: Fix name matching issue causing generated data to contain NAs
+

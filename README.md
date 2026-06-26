@@ -31,8 +31,9 @@ instructions](https://www.bioconductor.org/install/).
 
 ``` r
 ## install BiocManager if not installed
-if (!requireNamespace("BiocManager", quietly = TRUE))
+if (!requireNamespace("BiocManager", quietly = TRUE)) {
     install.packages("BiocManager")
+}
 ```
 
 Ensure the following returns `TRUE`, or follow the guidelines provided
@@ -47,7 +48,7 @@ BiocManager::valid()
 You can install `PLSDAbatch` using the following code:
 
 ``` r
-BiocManager::install('PLSDAbatch')
+BiocManager::install("PLSDAbatch")
 ```
 
 #### b) `GitHub` Version
@@ -56,7 +57,7 @@ Install the GitHub version with:
 
 ``` r
 # without vignette
-BiocManager::install("EvaYiwenWang/PLSDAbatch") 
+BiocManager::install("EvaYiwenWang/PLSDAbatch")
 
 # with vignette
 ## Install CRAN packages for vignette
@@ -78,10 +79,10 @@ devtools::install_github("https://github.com/EvaYiwenWang/PLSDAbatch", build_vig
 library(PLSDAbatch)
 
 ## names
-ls('package:PLSDAbatch')
+ls("package:PLSDAbatch")
 
 ## names and details
-lsf.str('package:PLSDAbatch')
+lsf.str("package:PLSDAbatch")
 ```
 
 ## Vignette View
@@ -128,3 +129,8 @@ mentioned simulations and analyses in the paper are separately stored
   generation.
 - Refined multiple functions to improve usability.
 - Updated the vignette accordingly.
+
+#### June 2026
+
+- Fixed name matching issue causing generated data to contain NAs for
+  `percentile_norm()`

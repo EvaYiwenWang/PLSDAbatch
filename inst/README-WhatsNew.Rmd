@@ -34,3 +34,7 @@ opts_chunk$set( echo = TRUE, eval = FALSE, warning = FALSE, message = FALSE)
 * Added `lighten()` and `darken()` functions for enhanced color generation.
 * Refined multiple functions to improve usability.
 * Updated the vignette accordingly.
+
+#### June 2026
+
+* Fixed name matching issue causing generated data to contain NAs for `percentile_norm()`

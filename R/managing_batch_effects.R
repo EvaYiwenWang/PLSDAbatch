@@ -573,8 +573,9 @@ percentile_norm <- function(data, batch, trt, ctrl.grp) {
         percentileofscore(data_each_b, control.index = ctrl_idx_local)
     })
 
-    # Combine batches in the order of factor levels
-    names(res_list) <- names(idx_by_batch)
+    # Combine batches in the order of factor levels.
+    # Keep the list unnamed so rbind() does not prefix batch labels onto the
+    # row names (which would break the reordering below).
     data_pn <- do.call(rbind, res_list)
 
     # Reorder to match the original 'data' row order (if rownames are present)
